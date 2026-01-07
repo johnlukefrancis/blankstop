@@ -42,6 +42,9 @@ pub fn join_identifier_splits(
         while i + 1 < lines.len() && should_join_identifier(&line, &lines[i + 1]) {
             let next_line = &lines[i + 1];
             let trimmed_next = next_line.trim_start();
+            if !is_identifier_split(line.trim_end(), trimmed_next) {
+                break;
+            }
             line.push_str(trimmed_next);
             summary.unwrapped_lines += 1;
             changed = true;

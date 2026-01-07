@@ -54,3 +54,32 @@ fn unwraps_single_wrapped_line_inside_large_snippet() {
         )
     );
 }
+
+#[test]
+fn unwraps_multiple_wraps_without_poisoning_width() {
+    let input = concat!(
+        "const report = {\n",
+        "  screen: safe(() => pick(screen,\n",
+        "  [\"width\",\"height\",\"availWidth\",\"availHeight\"], null),\n",
+        "  fallback: safe(() => value ? pick(data,\n",
+        "  [\"used\",\"total\",\"limit\"]) : null, null),\n",
+        "};\n"
+    );
+    let result = sanitize_text(input);
+    assert_eq!(
+        result.output,
+        concat!(
+            "const report = {\n",
+            "  screen: safe(() => pick(screen, [\"width\",\"height\",\"availWidth\",\"availHeight\"], null),\n",
+            "  fallback: safe(() => value ? pick(data, [\"used\",\"total\",\"limit\"]) : null, null),\n",
+            "};"
+        )
+    );
+}
+
+#[test]
+fn does_not_join_return_fallback_identifier() {
+    let input = "return\nfallback\n";
+    let result = sanitize_text(input);
+    assert_eq!(result.output, "return\nfallback");
+}

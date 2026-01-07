@@ -45,6 +45,8 @@ pub fn sanitize_text(input: &str) -> SanitizeResult {
         trimmed_blank_lines,
     };
 
+    let wrap_width = estimate_wrap_width(&lines);
+
     let output = if should_rule_a(&lines) {
         summary.unwrapped_lines = lines.len().saturating_sub(1);
         join_wrapped_single_line(&lines)
@@ -53,7 +55,7 @@ pub fn sanitize_text(input: &str) -> SanitizeResult {
         if let Some(joined) = join_identifier_splits(&working, &mut summary) {
             working = joined;
         }
-        if let Some(wrap_width) = estimate_wrap_width(&working) {
+        if let Some(wrap_width) = wrap_width {
             join_wrapped_multiline(&working, wrap_width, &mut summary)
         } else {
             working.join("\n")

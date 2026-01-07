@@ -1,14 +1,18 @@
 mod normalize;
+mod boundaries;
 mod heuristics;
+mod lines;
+mod profile;
 mod wrap;
+mod unwarp;
 
 use serde::Serialize;
 
-use normalize::{normalize_line_endings, trim_blank_edges, trim_trailing_whitespace};
-use wrap::{
-    estimate_wrap_width, join_identifier_splits, join_wrapped_multiline, join_wrapped_single_line,
-    should_rule_a,
-};
+use lines::{build_line_meta, trim_blank_edges};
+use normalize::normalize_line_endings;
+use profile::estimate_wrap_profile;
+use unwarp::unwarp_lines;
+use wrap::{join_wrapped_single_line, should_rule_a};
 
 #[derive(Debug, Default, Clone, Serialize)]
 pub struct SanitizeSummary {
@@ -25,7 +29,7 @@ pub struct SanitizeResult {
 
 pub fn sanitize_text(input: &str) -> SanitizeResult {
     let normalized = normalize_line_endings(input);
-    let (mut lines, trimmed_trailing_ws) = trim_trailing_whitespace(&normalized);
+    let (mut lines, trimmed_trailing_ws) = build_line_meta(&normalized);
     let trimmed_blank_lines = trim_blank_edges(&mut lines);
 
     if lines.is_empty() {
@@ -45,21 +49,14 @@ pub fn sanitize_text(input: &str) -> SanitizeResult {
         trimmed_blank_lines,
     };
 
-    let wrap_width = estimate_wrap_width(&lines);
+    let trimmed_lines: Vec<String> = lines.iter().map(|line| line.trimmed_end.clone()).collect();
+    let profile = estimate_wrap_profile(&lines);
 
-    let output = if should_rule_a(&lines) {
-        summary.unwrapped_lines = lines.len().saturating_sub(1);
-        join_wrapped_single_line(&lines)
+    let output = if should_rule_a(&trimmed_lines) {
+        summary.unwrapped_lines = trimmed_lines.len().saturating_sub(1);
+        join_wrapped_single_line(&trimmed_lines)
     } else {
-        let mut working = lines;
-        if let Some(joined) = join_identifier_splits(&working, &mut summary) {
-            working = joined;
-        }
-        if let Some(wrap_width) = wrap_width {
-            join_wrapped_multiline(&working, wrap_width, &mut summary)
-        } else {
-            working.join("\n")
-        }
+        unwarp_lines(&lines, &profile, &mut summary)
     };
 
     SanitizeResult { output, summary }

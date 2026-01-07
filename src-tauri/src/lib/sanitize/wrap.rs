@@ -1,6 +1,4 @@
-pub use super::heuristics::estimate_wrap_width;
-use super::heuristics::{is_identifier_split, is_probably_code_block, should_join_identifier};
-use super::SanitizeSummary;
+use super::heuristics::{is_identifier_split, is_probably_code_block};
 
 pub fn should_rule_a(lines: &[String]) -> bool {
     let len = lines.len();
@@ -30,32 +28,6 @@ fn looks_wrapped(line: &str) -> bool {
     }
 }
 
-pub fn join_identifier_splits(
-    lines: &[String],
-    summary: &mut SanitizeSummary,
-) -> Option<Vec<String>> {
-    let mut out_lines = Vec::with_capacity(lines.len());
-    let mut i = 0usize;
-    let mut changed = false;
-    while i < lines.len() {
-        let mut line = lines[i].clone();
-        while i + 1 < lines.len() && should_join_identifier(&line, &lines[i + 1]) {
-            let next_line = &lines[i + 1];
-            let trimmed_next = next_line.trim_start();
-            if !is_identifier_split(line.trim_end(), trimmed_next) {
-                break;
-            }
-            line.push_str(trimmed_next);
-            summary.unwrapped_lines += 1;
-            changed = true;
-            i += 1;
-        }
-        out_lines.push(line);
-        i += 1;
-    }
-    if changed { Some(out_lines) } else { None }
-}
-
 pub fn join_wrapped_single_line(lines: &[String]) -> String {
     let mut out = String::new();
     for (idx, line) in lines.iter().enumerate() {
@@ -70,44 +42,6 @@ pub fn join_wrapped_single_line(lines: &[String]) -> String {
         out.push_str(part);
     }
     out
-}
-
-pub fn join_wrapped_multiline(
-    lines: &[String],
-    wrap_width: usize,
-    summary: &mut SanitizeSummary,
-) -> String {
-    let mut out_lines = Vec::new();
-    let mut i = 0usize;
-    while i < lines.len() {
-        let mut line = lines[i].clone();
-        let mut current_len = lines[i].chars().count();
-        while i + 1 < lines.len() && should_join(current_len, &lines[i + 1], wrap_width) {
-            let next_line = &lines[i + 1];
-            let trimmed_next = next_line.trim_start().to_string();
-            if should_insert_space(&line, &trimmed_next) {
-                line.push(' ');
-            }
-            line.push_str(&trimmed_next);
-            summary.unwrapped_lines += 1;
-            i += 1;
-            current_len = lines[i].chars().count();
-        }
-        out_lines.push(line);
-        i += 1;
-    }
-    out_lines.join("\n")
-}
-
-fn should_join(prev_len: usize, next_line: &str, wrap_width: usize) -> bool {
-    let slack = 4;
-    if prev_len + slack < wrap_width {
-        return false;
-    }
-    if prev_len > wrap_width + slack {
-        return false;
-    }
-    !next_line.trim().is_empty()
 }
 
 fn should_insert_space(prev: &str, next: &str) -> bool {

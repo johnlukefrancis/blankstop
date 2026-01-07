@@ -1,5 +1,14 @@
 use super::sanitize_text;
 
+fn pad_line(content: &str, total_len: usize) -> String {
+    let len = content.chars().count();
+    if len >= total_len {
+        content.to_string()
+    } else {
+        format!("{content}{}", " ".repeat(total_len - len))
+    }
+}
+
 #[test]
 fn wrapped_commit_subject_example() {
     let input = "🟦 improve(docs): document HUD GPU clear state restore\n  requirement\n";
@@ -57,15 +66,14 @@ fn unwraps_single_wrapped_line_inside_large_snippet() {
 
 #[test]
 fn unwraps_multiple_wraps_without_poisoning_width() {
-    let input = concat!(
-        "const report = {\n",
-        "  screen: safe(() => pick(screen,\n",
-        "  [\"width\",\"height\",\"availWidth\",\"availHeight\"], null),\n",
-        "  fallback: safe(() => value ? pick(data,\n",
-        "  [\"used\",\"total\",\"limit\"]) : null, null),\n",
-        "};\n"
+    let width = 64;
+    let report_line = pad_line("const report = {", width);
+    let screen_line = pad_line("  screen: safe(() => pick(screen,", width);
+    let fallback_line = pad_line("  fallback: safe(() => value ? pick(data,", width);
+    let input = format!(
+        "{report_line}\n{screen_line}\n  [\"width\",\"height\",\"availWidth\",\"availHeight\"], null),\n{fallback_line}\n  [\"used\",\"total\",\"limit\"]) : null, null),\n};\n"
     );
-    let result = sanitize_text(input);
+    let result = sanitize_text(&input);
     assert_eq!(
         result.output,
         concat!(
@@ -86,13 +94,12 @@ fn does_not_join_return_fallback_identifier() {
 
 #[test]
 fn unwraps_return_with_indented_fallback() {
-    let input = concat!(
-        "const header = \"this is a fairly long line to anchor wrap width\";\n",
-        "const note = \"another long line to keep widths consistent\";\n",
-        "const result = computeSomethingVerbose(return\n",
-        "  fallback);\n"
-    );
-    let result = sanitize_text(input);
+    let width = 64;
+    let header = pad_line("const header = \"this is a fairly long line to anchor wrap width\";", width);
+    let note = pad_line("const note = \"another long line to keep widths consistent\";", width);
+    let result_line = pad_line("const result = computeSomethingVerbose(return", width);
+    let input = format!("{header}\n{note}\n{result_line}\n  fallback);\n");
+    let result = sanitize_text(&input);
     assert_eq!(
         result.output,
         concat!(
@@ -105,13 +112,12 @@ fn unwraps_return_with_indented_fallback() {
 
 #[test]
 fn unwraps_pick_screen_with_bracket() {
-    let input = concat!(
-        "const header = \"this is a fairly long line to anchor wrap width\";\n",
-        "const note = \"another long line to keep widths consistent\";\n",
-        "const metrics = pick(screen,\n",
-        "[\"width\"]);"
-    );
-    let result = sanitize_text(input);
+    let width = 64;
+    let header = pad_line("const header = \"this is a fairly long line to anchor wrap width\";", width);
+    let note = pad_line("const note = \"another long line to keep widths consistent\";", width);
+    let metrics_line = pad_line("const metrics = pick(screen,", width);
+    let input = format!("{header}\n{note}\n{metrics_line}\n[\"width\"]);");
+    let result = sanitize_text(&input);
     assert_eq!(
         result.output,
         concat!(
@@ -139,4 +145,15 @@ fn unwraps_emoji_punctuation_wraps() {
             "const detail = \"emoji 🚀 and punctuation: [one, two, three]\";"
         )
     );
+}
+
+#[test]
+fn padded_code_block_preserves_newlines() {
+    let width = 64;
+    let line1 = pad_line("if (foo) {", width);
+    let line2 = pad_line("  bar();", width);
+    let line3 = pad_line("}", width);
+    let input = format!("{line1}\n{line2}\n{line3}\n");
+    let result = sanitize_text(&input);
+    assert_eq!(result.output, "if (foo) {\n  bar();\n}");
 }

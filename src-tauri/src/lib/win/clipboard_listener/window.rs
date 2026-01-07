@@ -2,27 +2,28 @@ use std::ffi::c_void;
 
 use tauri::AppHandle;
 use windows::core::w;
-use windows::Win32::Foundation::{
-    GetLastError, GetModuleHandleW, HWND, LPARAM, LRESULT, WPARAM,
-};
+use windows::Win32::Foundation::{GetLastError, HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::System::DataExchange::{
     AddClipboardFormatListener, RemoveClipboardFormatListener,
 };
+use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows::Win32::UI::WindowsAndMessaging::{
     CreateWindowExW, DefWindowProcW, DispatchMessageW, GetMessageW, PostQuitMessage,
-    RegisterClassW, SetWindowLongPtrW, TranslateMessage, CREATESTRUCTW, GWLP_USERDATA, MSG,
-    WM_CLIPBOARDUPDATE, WM_DESTROY, WM_NCCREATE, WNDCLASSW, WS_OVERLAPPEDWINDOW,
+    RegisterClassW, SetWindowLongPtrW, TranslateMessage, CREATESTRUCTW, GWLP_USERDATA, HWND_MESSAGE,
+    MSG, WM_CLIPBOARDUPDATE, WM_DESTROY, WM_NCCREATE, WNDCLASSW, WS_OVERLAPPEDWINDOW,
 };
 
 use super::handler::handle_clipboard_update;
 use crate::state::SharedState;
 
-const HWND_MESSAGE: HWND = HWND(-3);
-
 pub fn start_listener(app: AppHandle, state: SharedState) {
     std::thread::spawn(move || {
         let class_name = w!("BlankstopClipboardListener");
-        let hinstance = unsafe { GetModuleHandleW(None) };
+        let hinstance = unsafe { GetModuleHandleW(None) }.ok();
+
+        let Some(hinstance) = hinstance else {
+            return;
+        };
 
         let wnd_class = WNDCLASSW {
             hInstance: hinstance,
@@ -51,23 +52,22 @@ pub fn start_listener(app: AppHandle, state: SharedState) {
                 HWND_MESSAGE,
                 None,
                 hinstance,
-                ctx_ptr,
+                Some(ctx_ptr as *const c_void),
             )
-        };
+        }
+        .ok();
 
-        if hwnd.0 == 0 {
+        let Some(hwnd) = hwnd else {
             let _ = unsafe { GetLastError() };
             unsafe { Box::from_raw(ctx_ptr as *mut ListenerContext) };
             return;
-        }
+        };
 
-        unsafe {
-            let _ = AddClipboardFormatListener(hwnd);
-        }
+        let _ = unsafe { AddClipboardFormatListener(hwnd) };
 
         let mut message = MSG::default();
         unsafe {
-            while GetMessageW(&mut message, HWND(0), 0, 0).as_bool() {
+            while GetMessageW(&mut message, HWND::default(), 0, 0).as_bool() {
                 TranslateMessage(&message);
                 DispatchMessageW(&message);
             }

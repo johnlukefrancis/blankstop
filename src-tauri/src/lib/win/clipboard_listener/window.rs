@@ -59,7 +59,7 @@ pub fn start_listener(app: AppHandle, state: SharedState) {
 
         let Some(hwnd) = hwnd else {
             let _ = unsafe { GetLastError() };
-            unsafe { Box::from_raw(ctx_ptr as *mut ListenerContext) };
+            unsafe { drop(Box::from_raw(ctx_ptr as *mut ListenerContext)) };
             return;
         };
 
@@ -68,7 +68,7 @@ pub fn start_listener(app: AppHandle, state: SharedState) {
         let mut message = MSG::default();
         unsafe {
             while GetMessageW(&mut message, HWND::default(), 0, 0).as_bool() {
-                TranslateMessage(&message);
+                let _ = TranslateMessage(&message);
                 DispatchMessageW(&message);
             }
         }

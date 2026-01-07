@@ -27,7 +27,7 @@ type UiState = {
 };
 
 const search = new URLSearchParams(window.location.search);
-const isToast = search.get("toast") === "1";
+const isToast = search.get("toast") === "1" || window.__blankstopToast === true;
 
 document.body.classList.toggle("toast-mode", isToast);
 document.body.classList.toggle("settings-mode", !isToast);

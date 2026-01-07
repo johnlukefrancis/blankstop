@@ -9,8 +9,9 @@ pub fn ensure_toast_window(app: &AppHandle) -> tauri::Result<()> {
     let window = tauri::WebviewWindowBuilder::new(
         app,
         "toast",
-        WebviewUrl::App("index.html?toast=1".into()),
+        WebviewUrl::App("index.html".into()),
     )
+    .initialization_script("window.__blankstopToast = true;")
     .decorations(false)
     .resizable(false)
     .transparent(true)
@@ -31,7 +32,6 @@ pub fn show_toast(app: &AppHandle, message: impl Into<String>) {
     let message = message.into();
     let _ = position_toast(&window);
     let _ = window.emit("toast-message", message.clone());
-    eval_toast(&window, &message);
     let _ = window.show();
     let window_clone = window.clone();
     tauri::async_runtime::spawn(async move {
@@ -51,26 +51,4 @@ fn position_toast(window: &tauri::WebviewWindow) -> tauri::Result<()> {
         window.set_position(PhysicalPosition::new(x, y))?;
     }
     Ok(())
-}
-
-fn eval_toast(window: &tauri::WebviewWindow, message: &str) {
-    let Ok(payload) = serde_json::to_string(message) else {
-        return;
-    };
-    let script = format!(
-        r#"
-(() => {{
-  const toast = document.getElementById("toast-root");
-  const message = document.getElementById("message");
-  if (!toast || !message) return;
-  message.textContent = {payload};
-  toast.classList.add("show");
-  clearTimeout(window.__blankstopToastTimer);
-  window.__blankstopToastTimer = setTimeout(() => {{
-    toast.classList.remove("show");
-  }}, 1200);
-}})();
-"#
-    );
-    let _ = window.eval(&script);
 }

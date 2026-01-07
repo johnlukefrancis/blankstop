@@ -7,7 +7,7 @@ pub fn ensure_toast_window(app: &AppHandle) -> tauri::Result<()> {
     let window = tauri::WebviewWindowBuilder::new(
         app,
         "toast",
-        WebviewUrl::App("toast.html".into()),
+        WebviewUrl::App("index.html?toast=1".into()),
     )
     .decorations(false)
     .resizable(false)

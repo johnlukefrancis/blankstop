@@ -3,9 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="/css/app.css" />
+    <link rel="stylesheet" href="/css/toast.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Blankstop Settings</title>
-    <script type="module" src="/src/app/main.ts" defer></script>
+    <script type="module" src="/src/app/index.ts" defer></script>
   </head>
   <body>
     <main class="app">
@@ -54,5 +55,10 @@
         <div class="log" id="log"></div>
       </section>
     </main>
+
+    <div id="toast-root" class="toast">
+      <div class="title">Blankstop</div>
+      <div id="message" class="message">Sanitized clipboard</div>
+    </div>
   </body>
 </html>

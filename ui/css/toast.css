@@ -3,12 +3,12 @@
   color: #f5f7fa;
 }
 
-body {
+body.toast-mode {
   margin: 0;
   background: transparent;
 }
 
-.toast {
+#toast-root {
   width: 320px;
   margin: 0;
   padding: 14px 16px;
@@ -22,7 +22,7 @@ body {
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.toast.show {
+#toast-root.show {
   opacity: 1;
   transform: translateY(0);
 }

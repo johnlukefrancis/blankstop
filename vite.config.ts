@@ -35,7 +35,6 @@ export default defineConfig(async () => ({
     rollupOptions: {
       input: {
         main: resolve(__dirname, "ui/index.html"),
-        toast: resolve(__dirname, "ui/toast.html"),
       },
     },
   },

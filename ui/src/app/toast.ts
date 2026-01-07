@@ -1,6 +1,6 @@
 import { listen } from "@tauri-apps/api/event";
 
-const toast = document.getElementById("toast") as HTMLDivElement;
+const toast = document.getElementById("toast-root") as HTMLDivElement;
 const message = document.getElementById("message") as HTMLDivElement;
 
 let hideTimer: number | undefined;

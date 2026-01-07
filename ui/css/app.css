@@ -25,6 +25,11 @@ body {
   color: var(--text);
 }
 
+body.toast-mode {
+  background: transparent;
+  min-height: auto;
+}
+
 .app {
   max-width: 620px;
   margin: 0 auto;
@@ -32,6 +37,18 @@ body {
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+body.toast-mode .app {
+  display: none;
+}
+
+#toast-root {
+  display: none;
+}
+
+body.toast-mode #toast-root {
+  display: block;
 }
 
 .header {

@@ -118,10 +118,16 @@ fn should_rule_a(lines: &[String]) -> bool {
         return false;
     }
     let long_context = lines.iter().any(|line| line.chars().count() >= 40);
-    lines
-        .iter()
-        .skip(1)
-        .any(|line| is_whitespace_continuation(line) || (long_context && looks_wrapped(line)))
+    for idx in 1..lines.len() {
+        let line = &lines[idx];
+        if is_whitespace_continuation(line) {
+            return true;
+        }
+        if long_context && looks_wrapped(line) && should_insert_space(&lines[idx - 1], line) {
+            return true;
+        }
+    }
+    false
 }
 
 fn is_whitespace_continuation(line: &str) -> bool {
@@ -170,14 +176,20 @@ fn infer_wrap_width(lines: &[String]) -> Option<usize> {
             *counts.entry(len).or_insert(0usize) += 1;
         }
     }
-    if total < 2 {
+    if total == 0 {
         return None;
     }
     let (mode, count) = counts
         .into_iter()
         .max_by_key(|(_, count)| *count)
         .unwrap();
-    if count >= 2 && count * 2 >= total {
+    if total >= 2 {
+        if count >= 2 && count * 2 >= total {
+            Some(mode)
+        } else {
+            None
+        }
+    } else if lines.len() <= 3 {
         Some(mode)
     } else {
         None
@@ -203,9 +215,7 @@ fn join_wrapped_multiline(
             } else {
                 next_line.clone()
             };
-            if !line.ends_with(|c: char| c.is_whitespace())
-                && !trimmed_next.starts_with(|c: char| c.is_whitespace())
-            {
+            if should_insert_space(&line, &trimmed_next) {
                 line.push(' ');
             }
             line.push_str(&trimmed_next);
@@ -231,6 +241,47 @@ fn should_join(prev_len: usize, next_line: &str, wrap_width: usize) -> bool {
 
 fn is_wrap_indent(line: &str) -> bool {
     line.starts_with("  ") || line.starts_with('\t')
+}
+
+fn should_insert_space(prev: &str, next: &str) -> bool {
+    let prev_trim = prev.trim_end();
+    let next_trim = next.trim_start();
+    if prev_trim.is_empty() || next_trim.is_empty() {
+        return false;
+    }
+    if prev_trim.ends_with(|c: char| c.is_whitespace())
+        || next_trim.starts_with(|c: char| c.is_whitespace())
+    {
+        return false;
+    }
+
+    if is_identifier_split(prev_trim, next_trim) {
+        return false;
+    }
+
+    true
+}
+
+fn is_identifier_split(prev: &str, next: &str) -> bool {
+    let prev_last = prev.chars().last();
+    let next_first = next.chars().next();
+    let Some(prev_last) = prev_last else { return false };
+    let Some(next_first) = next_first else { return false };
+    if !is_ident_char(prev_last) || !is_ident_char(next_first) {
+        return false;
+    }
+    let mut chars = prev.chars().rev();
+    while let Some(ch) = chars.next() {
+        if is_ident_char(ch) {
+            continue;
+        }
+        return matches!(ch, '.' | ':' | '>' | '/' | '\\' | '_' | '$');
+    }
+    false
+}
+
+fn is_ident_char(ch: char) -> bool {
+    ch.is_ascii_alphanumeric() || ch == '_'
 }
 
 #[cfg(test)]

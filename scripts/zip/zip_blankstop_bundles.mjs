@@ -235,6 +235,30 @@ async function removePath(targetPath) {
   }
 }
 
+async function removeOldOutputs() {
+  try {
+    const outputReal = await fs.realpath(outputRoot);
+    const entries = await fs.readdir(outputRoot);
+    await Promise.all(
+      entries.map(async (entry) => {
+        if (
+          entry === 'blankstop_bundles_index.md' ||
+          (entry.startsWith('blankstop_') && entry.endsWith('.zip'))
+        ) {
+          const targetPath = path.join(outputRoot, entry);
+          const targetReal = await fs.realpath(targetPath);
+          if (path.dirname(targetReal) !== outputReal) {
+            throw new Error(`Refusing to delete outside output: ${targetReal}`);
+          }
+          await removePath(targetPath);
+        }
+      }),
+    );
+  } catch {
+    // ignore cleanup errors
+  }
+}
+
 async function buildBundle({ bundleName, roots, timestamp, sha }) {
   const shaSuffix = sha ? `_${sha}` : '';
   const zipName = `blankstop_${bundleName}_${timestamp}${shaSuffix}.zip`;
@@ -313,6 +337,9 @@ const bundles = [
 if (includeDocs) {
   bundles.push({ bundleName: 'docs', roots: ['docs'] });
 }
+
+await ensureDir(outputRoot);
+await removeOldOutputs();
 
 const results = [];
 for (const bundle of bundles) {

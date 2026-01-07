@@ -1,4 +1,4 @@
-use super::boundaries::{decide_join, BoundaryContext};
+use super::boundaries::decide_join;
 use super::lines::LineMeta;
 use super::profile::WrapProfile;
 use super::SanitizeSummary;
@@ -15,11 +15,6 @@ pub fn unwarp_lines(lines: &[LineMeta], profile: &WrapProfile, summary: &mut San
                 &lines[prev_index],
                 &lines[next_index],
                 profile,
-                BoundaryContext {
-                    prev_index,
-                    next_index,
-                    total: lines.len(),
-                },
             );
             if !decision.join {
                 break;

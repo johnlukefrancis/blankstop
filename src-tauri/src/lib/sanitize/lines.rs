@@ -1,6 +1,5 @@
 #[derive(Clone, Debug)]
 pub struct LineMeta {
-    pub raw: String,
     pub raw_len_chars: usize,
     pub leading_ws_count: usize,
     pub trailing_ws_count: usize,
@@ -18,7 +17,6 @@ pub fn build_line_meta(input: &str) -> (Vec<LineMeta>, usize) {
             let trimmed_end = line.trim_end().to_string();
             trimmed_trailing_ws += trailing_ws_count;
             LineMeta {
-                raw: line.to_string(),
                 raw_len_chars,
                 leading_ws_count,
                 trailing_ws_count,

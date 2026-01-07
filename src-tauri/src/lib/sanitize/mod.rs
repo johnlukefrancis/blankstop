@@ -24,6 +24,7 @@ pub struct SanitizeSummary {
 #[derive(Debug, Clone)]
 pub struct SanitizeResult {
     pub output: String,
+    #[cfg_attr(not(windows), allow(dead_code))]
     pub summary: SanitizeSummary,
 }
 
@@ -63,6 +64,7 @@ pub fn sanitize_text(input: &str) -> SanitizeResult {
 }
 
 impl SanitizeSummary {
+    #[cfg_attr(not(windows), allow(dead_code))]
     pub fn toast_message(&self) -> String {
         let mut parts = Vec::new();
         if self.unwrapped_lines > 0 {

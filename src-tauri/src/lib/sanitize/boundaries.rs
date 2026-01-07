@@ -3,19 +3,12 @@ use super::lines::LineMeta;
 use super::profile::WrapProfile;
 
 #[derive(Clone, Copy, Debug)]
-pub struct BoundaryContext {
-    pub prev_index: usize,
-    pub next_index: usize,
-    pub total: usize,
-}
-
-#[derive(Clone, Copy, Debug)]
 pub struct JoinDecision {
     pub join: bool,
     pub insert_space: bool,
 }
 
-pub fn decide_join(prev: &LineMeta, next: &LineMeta, profile: &WrapProfile, _ctx: BoundaryContext) -> JoinDecision {
+pub fn decide_join(prev: &LineMeta, next: &LineMeta, profile: &WrapProfile) -> JoinDecision {
     let prev_trim = prev.trimmed_end.as_str();
     let next_trim = next.trimmed_end.as_str();
 

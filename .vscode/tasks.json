@@ -47,6 +47,12 @@
       "group": "build"
     },
     {
+      "label": "Sync: Windows mirror (WSL)",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/sync_to_windows.sh",
+      "group": "build"
+    },
+    {
       "label": "Tauri: dev (Windows)",
       "type": "process",
       "command": "powershell.exe",
@@ -55,7 +61,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "cd \\\\wsl.localhost\\Ubuntu\\home\\johnf\\code\\blankstop; pnpm tauri dev"
+        "wsl.exe -d Ubuntu -- bash -lc 'cd /home/johnf/code/blankstop && ./scripts/sync_to_windows.sh'; cd C:\\\\code\\\\blankstop; pnpm tauri dev"
       ],
       "group": "build"
     }

@@ -31,7 +31,7 @@ impl Drop for ClipboardGuard {
 }
 
 pub fn read_clipboard_text(hwnd: HWND) -> Option<String> {
-    if !unsafe { IsClipboardFormatAvailable(CF_UNICODETEXT.0 as u32) }.as_bool() {
+    if unsafe { IsClipboardFormatAvailable(CF_UNICODETEXT.0 as u32) }.is_err() {
         return None;
     }
     for attempt in 0..MAX_ATTEMPTS {

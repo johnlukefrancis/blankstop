@@ -42,8 +42,8 @@ pub fn show_toast(app: &AppHandle, message: impl Into<String>) {
     let _ = window.emit("toast-message", message.clone());
     let _ = window.show();
     let window_clone = window.clone();
-    tauri::async_runtime::spawn(async move {
-        tauri::async_runtime::sleep(Duration::from_millis(1400)).await;
+    tauri::async_runtime::spawn_blocking(move || {
+        std::thread::sleep(Duration::from_millis(1400));
         if TOAST_GENERATION.load(Ordering::Relaxed) == generation {
             let _ = window_clone.hide();
         }

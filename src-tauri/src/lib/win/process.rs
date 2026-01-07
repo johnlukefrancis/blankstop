@@ -5,10 +5,12 @@ use windows::core::PWSTR;
 use windows::Win32::Foundation::{CloseHandle, HWND};
 use windows::Win32::System::DataExchange::GetClipboardOwner;
 use windows::Win32::System::Threading::{
-    GetWindowThreadProcessId, OpenProcess, QueryFullProcessImageNameW,
+    OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_FORMAT,
     PROCESS_QUERY_LIMITED_INFORMATION,
 };
-use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
+use windows::Win32::UI::WindowsAndMessaging::{
+    GetForegroundWindow, GetWindowThreadProcessId,
+};
 
 pub fn clipboard_owner_exe_name() -> Option<String> {
     unsafe {
@@ -36,7 +38,12 @@ fn exe_name_from_hwnd(hwnd: HWND) -> Option<String> {
         }
         let mut buffer = vec![0u16; 260];
         let mut len = buffer.len() as u32;
-        let ok = QueryFullProcessImageNameW(handle, 0, PWSTR(buffer.as_mut_ptr()), &mut len);
+        let ok = QueryFullProcessImageNameW(
+            handle,
+            PROCESS_NAME_FORMAT(0),
+            PWSTR(buffer.as_mut_ptr()),
+            &mut len,
+        );
         let _ = CloseHandle(handle);
         if ok.is_err() || len == 0 {
             return None;

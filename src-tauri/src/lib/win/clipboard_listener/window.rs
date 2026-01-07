@@ -26,7 +26,7 @@ pub fn start_listener(app: AppHandle, state: SharedState) {
         };
 
         let wnd_class = WNDCLASSW {
-            hInstance: hinstance,
+            hInstance: hinstance.into(),
             lpszClassName: class_name,
             lpfnWndProc: Some(window_proc),
             ..Default::default()

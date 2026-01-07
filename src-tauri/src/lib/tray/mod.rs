@@ -32,6 +32,9 @@ pub fn init_tray(app: &AppHandle, state: SharedState) -> tauri::Result<()> {
                 "settings" => {
                     open_settings_window(app, &state);
                 }
+                "test_toast" => {
+                    show_toast(app, "Blankstop test toast");
+                }
                 "quit" => {
                     app.exit(0);
                 }
@@ -67,6 +70,7 @@ fn build_menu(app: &AppHandle, state: &SharedState) -> tauri::Result<Menu<Wry>> 
     let pause_item = MenuItem::with_id(app, "pause_5", "Pause 5 min", true, None::<&str>)?;
     let resume_item = MenuItem::with_id(app, "resume", "Resume now", paused, None::<&str>)?;
     let settings_item = MenuItem::with_id(app, "settings", "Settings...", true, None::<&str>)?;
+    let test_toast_item = MenuItem::with_id(app, "test_toast", "Test Toast", true, None::<&str>)?;
     let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
     Menu::with_items(
         app,
@@ -75,6 +79,7 @@ fn build_menu(app: &AppHandle, state: &SharedState) -> tauri::Result<Menu<Wry>> 
             &pause_item,
             &resume_item,
             &settings_item,
+            &test_toast_item,
             &PredefinedMenuItem::separator(app)?,
             &quit_item,
         ],

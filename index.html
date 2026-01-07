@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blankstop Settings</title>
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <div>
+          <h1>Blankstop</h1>
+          <p class="subtitle">Clipboard sanitizer for terminal copy and paste.</p>
+        </div>
+        <div class="status" id="status-pill">Enabled</div>
+      </header>
+
+      <section class="card">
+        <h2>Behavior</h2>
+        <div class="toggle-row">
+          <label class="toggle">
+            <input id="enabled" type="checkbox" />
+            <span>Enabled</span>
+          </label>
+          <label class="toggle">
+            <input id="toast_enabled" type="checkbox" />
+            <span>Toast notifications</span>
+          </label>
+          <label class="toggle">
+            <input id="only_allowlisted" type="checkbox" />
+            <span>Only sanitize allowlisted apps</span>
+          </label>
+          <label class="toggle">
+            <input id="run_on_startup" type="checkbox" />
+            <span>Run on startup</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Allowlist</h2>
+        <p class="hint">One executable per line.</p>
+        <textarea id="allowlist" rows="7"></textarea>
+      </section>
+
+      <section class="card">
+        <h2>Recent activity</h2>
+        <div class="meta">
+          <span class="label">Last source</span>
+          <span id="last-source">None</span>
+        </div>
+        <div class="log" id="log"></div>
+      </section>
+    </main>
+  </body>
+</html>

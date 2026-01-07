@@ -1,0 +1,41 @@
+:root {
+  font-family: "Segoe UI Variable", "Segoe UI", "Candara", "Trebuchet MS", sans-serif;
+  color: #f5f7fa;
+}
+
+body {
+  margin: 0;
+  background: transparent;
+}
+
+.toast {
+  width: 320px;
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(18, 26, 36, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 18px 40px rgba(4, 12, 18, 0.45);
+  transform: translateY(14px);
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 6px;
+}
+
+.message {
+  font-size: 14px;
+  color: #f5f7fa;
+}

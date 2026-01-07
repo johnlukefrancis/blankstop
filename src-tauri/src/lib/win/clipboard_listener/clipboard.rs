@@ -2,7 +2,8 @@ use std::mem::size_of;
 
 use windows::Win32::Foundation::{GlobalFree, HGLOBAL, HANDLE, HWND};
 use windows::Win32::System::DataExchange::{
-    CloseClipboard, EmptyClipboard, GetClipboardData, OpenClipboard, SetClipboardData,
+    CloseClipboard, EmptyClipboard, GetClipboardData, IsClipboardFormatAvailable, OpenClipboard,
+    SetClipboardData,
 };
 use windows::Win32::System::Memory::{GlobalAlloc, GlobalLock, GlobalUnlock, GMEM_MOVEABLE};
 use windows::Win32::System::Ole::CF_UNICODETEXT;
@@ -11,19 +12,41 @@ use windows::Win32::System::Threading::Sleep;
 const MAX_ATTEMPTS: u32 = 10;
 const BACKOFF_MS: u32 = 15;
 
-pub fn read_clipboard_text(hwnd: HWND) -> Option<String> {
-    for attempt in 0..MAX_ATTEMPTS {
+struct ClipboardGuard;
+
+impl ClipboardGuard {
+    fn open(hwnd: HWND) -> Result<Self, ()> {
         if unsafe { OpenClipboard(hwnd).is_err() } {
-            unsafe { Sleep(BACKOFF_MS * (attempt + 1)) };
-            continue;
+            return Err(());
         }
+        Ok(Self)
+    }
+}
+
+impl Drop for ClipboardGuard {
+    fn drop(&mut self) {
+        // Invariant: CloseClipboard always happens after a successful OpenClipboard.
+        let _ = unsafe { CloseClipboard() };
+    }
+}
+
+pub fn read_clipboard_text(hwnd: HWND) -> Option<String> {
+    if !unsafe { IsClipboardFormatAvailable(CF_UNICODETEXT.0 as u32) }.as_bool() {
+        return None;
+    }
+    for attempt in 0..MAX_ATTEMPTS {
+        let _guard = match ClipboardGuard::open(hwnd) {
+            Ok(guard) => guard,
+            Err(()) => {
+                unsafe { Sleep(BACKOFF_MS * (attempt + 1)) };
+                continue;
+            }
+        };
         let handle = unsafe { GetClipboardData(CF_UNICODETEXT.0 as u32) }.ok()?;
         if handle.0.is_null() {
-            let _ = unsafe { CloseClipboard() };
             return None;
         }
         let text = unsafe { copy_hglobal_utf16(HGLOBAL(handle.0)) };
-        let _ = unsafe { CloseClipboard() };
         return text;
     }
     None
@@ -31,10 +54,13 @@ pub fn read_clipboard_text(hwnd: HWND) -> Option<String> {
 
 pub fn write_clipboard_text(hwnd: HWND, text: &str) -> Result<(), ()> {
     for attempt in 0..MAX_ATTEMPTS {
-        if unsafe { OpenClipboard(hwnd).is_err() } {
-            unsafe { Sleep(BACKOFF_MS * (attempt + 1)) };
-            continue;
-        }
+        let _guard = match ClipboardGuard::open(hwnd) {
+            Ok(guard) => guard,
+            Err(()) => {
+                unsafe { Sleep(BACKOFF_MS * (attempt + 1)) };
+                continue;
+            }
+        };
 
         let _ = unsafe { EmptyClipboard() };
         let wide: Vec<u16> = text.encode_utf16().chain(std::iter::once(0)).collect();
@@ -42,16 +68,12 @@ pub fn write_clipboard_text(hwnd: HWND, text: &str) -> Result<(), ()> {
         let handle = unsafe { GlobalAlloc(GMEM_MOVEABLE, size_bytes) }.ok();
         let handle = match handle {
             Some(handle) if !handle.0.is_null() => handle,
-            _ => {
-                let _ = unsafe { CloseClipboard() };
-                return Err(());
-            }
+            _ => return Err(()),
         };
         let lock = unsafe { GlobalLock(handle) } as *mut u16;
         if lock.is_null() {
             unsafe {
                 let _ = GlobalFree(handle);
-                let _ = CloseClipboard();
             }
             return Err(());
         }
@@ -61,7 +83,6 @@ pub fn write_clipboard_text(hwnd: HWND, text: &str) -> Result<(), ()> {
         }
 
         let set_ok = unsafe { SetClipboardData(CF_UNICODETEXT.0 as u32, HANDLE(handle.0)) };
-        let _ = unsafe { CloseClipboard() };
         if set_ok.is_err() {
             unsafe { let _ = GlobalFree(handle); };
             return Err(());

@@ -71,7 +71,7 @@ fn unwraps_multiple_wraps_without_poisoning_width() {
     let screen_line = pad_line("  screen: safe(() => pick(screen,", width);
     let fallback_line = pad_line("  fallback: safe(() => value ? pick(data,", width);
     let input = format!(
-        "{report_line}\n{screen_line}\n  [\"width\",\"height\",\"availWidth\",\"availHeight\"], null),\n{fallback_line}\n  [\"used\",\"total\",\"limit\"]) : null, null),\n};\n"
+        "{report_line}\n{screen_line}\n  [\"width\",\"height\",\"availWidth\",\"availHeight\"], null),\n{fallback_line}\n  [\"used\",\"total\",\"limit\"]) : null, null),\n}};\n"
     );
     let result = sanitize_text(&input);
     assert_eq!(
@@ -130,13 +130,15 @@ fn unwraps_pick_screen_with_bracket() {
 
 #[test]
 fn unwraps_emoji_punctuation_wraps() {
-    let input = concat!(
-        "const header = \"🚀 release: punctuation, commas, semicolons; brackets [a, b, c]\";\n",
-        "const note = \"status: ok, version: 1.2.3, build: 4567\";\n",
-        "const detail = \"emoji 🚀 and punctuation: [one,\n",
-        "two, three]\";\n"
+    let width = 64;
+    let header = pad_line(
+        "const header = \"🚀 release: punctuation, commas, semicolons; brackets [a, b, c]\";",
+        width,
     );
-    let result = sanitize_text(input);
+    let note = pad_line("const note = \"status: ok, version: 1.2.3, build: 4567\";", width);
+    let detail = pad_line("const detail = \"emoji 🚀 and punctuation: [one,", width);
+    let input = format!("{header}\n{note}\n{detail}\n two, three]\";\n");
+    let result = sanitize_text(&input);
     assert_eq!(
         result.output,
         concat!(

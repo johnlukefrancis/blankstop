@@ -8,6 +8,9 @@ pub fn should_rule_a(lines: &[String]) -> bool {
     if is_probably_code_block(lines) {
         return false;
     }
+    if lines.iter().any(|line| line.trim_end().ends_with(';')) {
+        return false;
+    }
     let long_context = lines.iter().any(|line| line.chars().count() >= 40);
     for idx in 1..lines.len() {
         let line = &lines[idx];

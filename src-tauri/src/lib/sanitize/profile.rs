@@ -32,11 +32,11 @@ pub fn estimate_wrap_profile(lines: &[LineMeta]) -> WrapProfile {
                 best_cluster = cluster;
             }
         }
-        if best_cluster.len() < 2 {
-            None
-        } else {
+        if best_cluster.len() >= 2 {
             let sum: usize = best_cluster.iter().sum();
             Some((sum + best_cluster.len() / 2) / best_cluster.len())
+        } else {
+            Some(*long_lengths.iter().max().unwrap())
         }
     };
 

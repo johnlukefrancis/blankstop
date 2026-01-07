@@ -2,7 +2,7 @@ use std::time::{Duration, Instant};
 
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
-use tauri::{AppHandle, Manager, Wry};
+use tauri::{AppHandle, Manager, WebviewUrl, Wry};
 
 use crate::state::{emit_ui_state, is_paused, save_config, Config, SharedState};
 use crate::toast::show_toast;
@@ -30,11 +30,7 @@ pub fn init_tray(app: &AppHandle, state: SharedState) -> tauri::Result<()> {
                     emit_ui_state(app, &state);
                 }
                 "settings" => {
-                    if let Some(window) = app.get_webview_window("main") {
-                        let _ = window.show();
-                        let _ = window.set_focus();
-                        emit_ui_state(app, &state);
-                    }
+                    open_settings_window(app, &state);
                 }
                 "quit" => {
                     app.exit(0);
@@ -124,4 +120,23 @@ pub fn apply_config(app: &AppHandle, state: &SharedState, mut config: Config) ->
     sync_menu(app, state);
     emit_ui_state(app, state);
     Ok(())
+}
+
+fn open_settings_window(app: &AppHandle, state: &SharedState) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.set_focus();
+        emit_ui_state(app, state);
+        return;
+    }
+    let window = tauri::WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
+        .title("Blankstop Settings")
+        .inner_size(560.0, 560.0)
+        .resizable(false)
+        .visible(true)
+        .build();
+    if let Ok(window) = window {
+        let _ = window.set_focus();
+        emit_ui_state(app, state);
+    }
 }

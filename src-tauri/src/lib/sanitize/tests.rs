@@ -83,3 +83,17 @@ fn does_not_join_return_fallback_identifier() {
     let result = sanitize_text(input);
     assert_eq!(result.output, "return\nfallback");
 }
+
+#[test]
+fn unwraps_return_with_indented_fallback() {
+    let input = "return\n  fallback\n";
+    let result = sanitize_text(input);
+    assert_eq!(result.output, "return fallback");
+}
+
+#[test]
+fn unwraps_pick_screen_with_bracket() {
+    let input = "pick(screen,\n[\"width\"])";
+    let result = sanitize_text(input);
+    assert_eq!(result.output, "pick(screen, [\"width\"])");
+}

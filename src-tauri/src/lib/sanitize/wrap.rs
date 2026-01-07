@@ -84,11 +84,7 @@ pub fn join_wrapped_multiline(
         let mut current_len = lines[i].chars().count();
         while i + 1 < lines.len() && should_join(current_len, &lines[i + 1], wrap_width) {
             let next_line = &lines[i + 1];
-            let trimmed_next = if is_wrap_indent(next_line) {
-                next_line.trim_start().to_string()
-            } else {
-                next_line.clone()
-            };
+            let trimmed_next = next_line.trim_start().to_string();
             if should_insert_space(&line, &trimmed_next) {
                 line.push(' ');
             }
@@ -111,10 +107,6 @@ fn should_join(prev_len: usize, next_line: &str, wrap_width: usize) -> bool {
         return false;
     }
     !next_line.trim().is_empty()
-}
-
-fn is_wrap_indent(line: &str) -> bool {
-    line.starts_with("  ") || line.starts_with('\t')
 }
 
 fn should_insert_space(prev: &str, next: &str) -> bool {

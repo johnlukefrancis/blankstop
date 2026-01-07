@@ -1,4 +1,4 @@
-use tauri::{AppHandle, Manager, PhysicalPosition, PhysicalSize, WebviewUrl};
+use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewUrl};
 
 pub fn ensure_toast_window(app: &AppHandle) -> tauri::Result<()> {
     if app.get_webview_window("toast").is_some() {
@@ -18,7 +18,6 @@ pub fn ensure_toast_window(app: &AppHandle) -> tauri::Result<()> {
     .inner_size(360.0, 92.0)
     .build()?;
 
-    let _ = window.set_focus(false);
     position_toast(&window)?;
     Ok(())
 }
@@ -30,7 +29,6 @@ pub fn show_toast(app: &AppHandle, message: impl Into<String>) {
     let _ = position_toast(&window);
     let _ = window.emit("toast-message", message.into());
     let _ = window.show();
-    let _ = window.set_focus(false);
 }
 
 fn position_toast(window: &tauri::WebviewWindow) -> tauri::Result<()> {

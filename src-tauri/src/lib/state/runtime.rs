@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 
-use tauri::AppHandle;
+use tauri::{AppHandle, Emitter};
 
 use super::{AppState, Config, LogEntry, UiState};
 
@@ -43,5 +43,5 @@ pub fn ui_state(state: &AppState) -> UiState {
 pub fn emit_ui_state(app: &AppHandle, shared: &SharedState) {
     let state = shared.lock().expect("state mutex poisoned");
     let payload = ui_state(&state);
-    let _ = app.emit_all("ui-state", payload);
+    let _ = app.emit("ui-state", payload);
 }

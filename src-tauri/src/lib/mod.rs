@@ -47,11 +47,10 @@ pub fn run() {
 
 fn register_shortcut(app: &AppHandle, state: state::SharedState) -> tauri::Result<()> {
     let state = state.clone();
-    app.global_shortcut().on_shortcut(
-        "Ctrl+Alt+Shift+V",
-        move |app, _shortcut, _event| {
+    app.global_shortcut()
+        .on_shortcut("Ctrl+Alt+Shift+V", move |app, _shortcut, _event| {
             tray::set_enabled_from_shortcut(app, &state);
-        },
-    )?;
+        })
+        .map_err(|err| tauri::Error::PluginInitialization("global-shortcut".into(), err.to_string()))?;
     Ok(())
 }

@@ -2,7 +2,7 @@ use std::time::{Duration, Instant};
 
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager, Wry};
 
 use crate::state::{emit_ui_state, is_paused, save_config, Config, SharedState};
 use crate::toast::show_toast;
@@ -55,7 +55,7 @@ pub fn sync_menu(app: &AppHandle, state: &SharedState) {
     }
 }
 
-fn build_menu(app: &AppHandle, state: &SharedState) -> tauri::Result<Menu> {
+fn build_menu(app: &AppHandle, state: &SharedState) -> tauri::Result<Menu<Wry>> {
     let (config, paused) = {
         let guard = state.lock().expect("state mutex poisoned");
         (guard.config.clone(), is_paused(&guard))
@@ -85,7 +85,7 @@ fn build_menu(app: &AppHandle, state: &SharedState) -> tauri::Result<Menu> {
     )
 }
 
-fn toggle_enabled(app: &AppHandle, state: &SharedState, show_toast: bool) {
+fn toggle_enabled(app: &AppHandle, state: &SharedState, show_toast_notification: bool) {
     let config = {
         let mut guard = state.lock().expect("state mutex poisoned");
         guard.config.enabled = !guard.config.enabled;
@@ -94,7 +94,7 @@ fn toggle_enabled(app: &AppHandle, state: &SharedState, show_toast: bool) {
     if save_config(app, &config).is_ok() {
         sync_menu(app, state);
         emit_ui_state(app, state);
-        if show_toast {
+        if show_toast_notification {
             let message = if config.enabled {
                 "Blankstop enabled"
             } else {

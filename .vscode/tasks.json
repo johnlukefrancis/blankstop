@@ -36,6 +36,28 @@
         "cwd": "${workspaceFolder}/src-tauri"
       },
       "group": "test"
+    },
+    {
+      "label": "Tauri: dev (WSL)",
+      "type": "shell",
+      "command": "pnpm tauri dev",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "build"
+    },
+    {
+      "label": "Tauri: dev (Windows)",
+      "type": "process",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "cd \\\\wsl.localhost\\Ubuntu\\home\\johnf\\code\\blankstop; pnpm tauri dev"
+      ],
+      "group": "build"
     }
   ]
 }

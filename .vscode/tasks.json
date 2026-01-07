@@ -134,6 +134,21 @@
         "showReuseMessage": false
       },
       "group": "build"
+    },
+    {
+      "label": "Zip: bundles",
+      "type": "shell",
+      "command": "node scripts/zip/zip_blankstop_bundles.mjs",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "showReuseMessage": false,
+        "close": true
+      },
+      "group": "build"
     }
   ]
 }

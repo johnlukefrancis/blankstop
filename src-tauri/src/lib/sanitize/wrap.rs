@@ -1,3 +1,5 @@
+pub use super::heuristics::estimate_wrap_width;
+use super::heuristics::{is_identifier_split, is_probably_code_block, should_join_identifier};
 use super::SanitizeSummary;
 
 pub fn should_rule_a(lines: &[String]) -> bool {
@@ -5,24 +7,17 @@ pub fn should_rule_a(lines: &[String]) -> bool {
     if !(2..=4).contains(&len) {
         return false;
     }
+    if is_probably_code_block(lines) {
+        return false;
+    }
     let long_context = lines.iter().any(|line| line.chars().count() >= 40);
     for idx in 1..lines.len() {
         let line = &lines[idx];
-        if is_whitespace_continuation(line) {
-            return true;
-        }
         if long_context && looks_wrapped(line) && should_insert_space(&lines[idx - 1], line) {
             return true;
         }
     }
     false
-}
-
-fn is_whitespace_continuation(line: &str) -> bool {
-    if line.is_empty() {
-        return false;
-    }
-    line.starts_with(|c: char| c.is_whitespace())
 }
 
 fn looks_wrapped(line: &str) -> bool {
@@ -33,6 +28,29 @@ fn looks_wrapped(line: &str) -> bool {
         Some(',' | '.' | ';' | ':' | ')' | ']' | '}') => true,
         _ => false,
     }
+}
+
+pub fn join_identifier_splits(
+    lines: &[String],
+    summary: &mut SanitizeSummary,
+) -> Option<Vec<String>> {
+    let mut out_lines = Vec::with_capacity(lines.len());
+    let mut i = 0usize;
+    let mut changed = false;
+    while i < lines.len() {
+        let mut line = lines[i].clone();
+        while i + 1 < lines.len() && should_join_identifier(&line, &lines[i + 1]) {
+            let next_line = &lines[i + 1];
+            let trimmed_next = next_line.trim_start();
+            line.push_str(trimmed_next);
+            summary.unwrapped_lines += 1;
+            changed = true;
+            i += 1;
+        }
+        out_lines.push(line);
+        i += 1;
+    }
+    if changed { Some(out_lines) } else { None }
 }
 
 pub fn join_wrapped_single_line(lines: &[String]) -> String {
@@ -49,36 +67,6 @@ pub fn join_wrapped_single_line(lines: &[String]) -> String {
         out.push_str(part);
     }
     out
-}
-
-pub fn infer_wrap_width(lines: &[String]) -> Option<usize> {
-    let mut counts = std::collections::HashMap::new();
-    let mut total = 0usize;
-    for line in lines {
-        let len = line.chars().count();
-        if len >= 40 {
-            total += 1;
-            *counts.entry(len).or_insert(0usize) += 1;
-        }
-    }
-    if total == 0 {
-        return None;
-    }
-    let (mode, count) = counts
-        .into_iter()
-        .max_by_key(|(_, count)| *count)
-        .unwrap();
-    if total >= 2 {
-        if count >= 2 && count * 2 >= total {
-            Some(mode)
-        } else {
-            None
-        }
-    } else if lines.len() <= 3 {
-        Some(mode)
-    } else {
-        None
-    }
 }
 
 pub fn join_wrapped_multiline(
@@ -143,26 +131,4 @@ fn should_insert_space(prev: &str, next: &str) -> bool {
     }
 
     true
-}
-
-fn is_identifier_split(prev: &str, next: &str) -> bool {
-    let prev_last = prev.chars().last();
-    let next_first = next.chars().next();
-    let Some(prev_last) = prev_last else { return false };
-    let Some(next_first) = next_first else { return false };
-    if !is_ident_char(prev_last) || !is_ident_char(next_first) {
-        return false;
-    }
-    let mut chars = prev.chars().rev();
-    while let Some(ch) = chars.next() {
-        if is_ident_char(ch) {
-            continue;
-        }
-        return matches!(ch, '.' | ':' | '>' | '/' | '\\' | '_' | '$');
-    }
-    false
-}
-
-fn is_ident_char(ch: char) -> bool {
-    ch.is_ascii_alphanumeric() || ch == '_'
 }

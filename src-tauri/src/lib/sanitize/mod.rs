@@ -1,10 +1,14 @@
 mod normalize;
+mod heuristics;
 mod wrap;
 
 use serde::Serialize;
 
 use normalize::{normalize_line_endings, trim_blank_edges, trim_trailing_whitespace};
-use wrap::{infer_wrap_width, join_wrapped_multiline, join_wrapped_single_line, should_rule_a};
+use wrap::{
+    estimate_wrap_width, join_identifier_splits, join_wrapped_multiline, join_wrapped_single_line,
+    should_rule_a,
+};
 
 #[derive(Debug, Default, Clone, Serialize)]
 pub struct SanitizeSummary {
@@ -44,10 +48,16 @@ pub fn sanitize_text(input: &str) -> SanitizeResult {
     let output = if should_rule_a(&lines) {
         summary.unwrapped_lines = lines.len().saturating_sub(1);
         join_wrapped_single_line(&lines)
-    } else if let Some(wrap_width) = infer_wrap_width(&lines) {
-        join_wrapped_multiline(&lines, wrap_width, &mut summary)
     } else {
-        lines.join("\n")
+        let mut working = lines;
+        if let Some(joined) = join_identifier_splits(&working, &mut summary) {
+            working = joined;
+        }
+        if let Some(wrap_width) = estimate_wrap_width(&working) {
+            join_wrapped_multiline(&working, wrap_width, &mut summary)
+        } else {
+            working.join("\n")
+        }
     };
 
     SanitizeResult { output, summary }

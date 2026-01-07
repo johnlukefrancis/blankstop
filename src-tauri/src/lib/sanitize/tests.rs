@@ -26,3 +26,31 @@ fn soft_wrap_join_simulation() {
         "checksum: Array.from({ length: 24 }, (_, i) => ((i * 7 + 13) % 97)).join(',')"
     );
 }
+
+#[test]
+fn does_not_flatten_short_code_block() {
+    let input = "if (foo) {\n  bar();\n}\n";
+    let result = sanitize_text(input);
+    assert_eq!(result.output, "if (foo) {\n  bar();\n}");
+}
+
+#[test]
+fn unwraps_single_wrapped_line_inside_large_snippet() {
+    let input = concat!(
+        "const values = [1, 2, 3, 4, 5];\n",
+        "const label = \"alpha\";\n",
+        "const joined = items.map((item) => item.trim()).jo\n",
+        "in(',');\n",
+        "return { label, joined, values };\n"
+    );
+    let result = sanitize_text(input);
+    assert_eq!(
+        result.output,
+        concat!(
+            "const values = [1, 2, 3, 4, 5];\n",
+            "const label = \"alpha\";\n",
+            "const joined = items.map((item) => item.trim()).join(',');\n",
+            "return { label, joined, values };"
+        )
+    );
+}

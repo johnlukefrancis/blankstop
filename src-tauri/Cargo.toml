@@ -12,7 +12,12 @@ edition = "2021"
 # This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
 [lib]
 name = "blankstop_lib"
+path = "src/lib/mod.rs"
 crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "blankstop"
+path = "src/bin/blankstop.rs"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

@@ -100,10 +100,11 @@ pub fn join_wrapped_multiline(
 }
 
 fn should_join(prev_len: usize, next_line: &str, wrap_width: usize) -> bool {
-    if prev_len + 2 < wrap_width {
+    let slack = 4;
+    if prev_len + slack < wrap_width {
         return false;
     }
-    if prev_len > wrap_width + 2 {
+    if prev_len > wrap_width + slack {
         return false;
     }
     !next_line.trim().is_empty()

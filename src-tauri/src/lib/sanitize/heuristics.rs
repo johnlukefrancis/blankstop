@@ -21,6 +21,7 @@ pub fn is_probably_code_block(lines: &[String]) -> bool {
 }
 
 pub fn estimate_wrap_width(lines: &[String]) -> Option<usize> {
+    // Invariant: estimate from original visual rows only, using a tolerant cluster (±2 chars).
     let mut long_lengths = Vec::new();
     for line in lines {
         let len = line.chars().count();
@@ -31,17 +32,23 @@ pub fn estimate_wrap_width(lines: &[String]) -> Option<usize> {
     if long_lengths.len() < 2 {
         return None;
     }
-    long_lengths.sort_unstable();
-    let max_len = *long_lengths.last().unwrap();
-    let cluster: Vec<usize> = long_lengths
-        .into_iter()
-        .filter(|len| *len + 6 >= max_len)
-        .collect();
-    if cluster.len() < 2 {
+
+    let mut best_cluster: Vec<usize> = Vec::new();
+    for center in &long_lengths {
+        let cluster: Vec<usize> = long_lengths
+            .iter()
+            .cloned()
+            .filter(|len| (*len as isize - *center as isize).abs() <= 2)
+            .collect();
+        if cluster.len() > best_cluster.len() {
+            best_cluster = cluster;
+        }
+    }
+    if best_cluster.len() < 2 {
         return None;
     }
-    let sum: usize = cluster.iter().sum();
-    Some((sum + cluster.len() / 2) / cluster.len())
+    let sum: usize = best_cluster.iter().sum();
+    Some((sum + best_cluster.len() / 2) / best_cluster.len())
 }
 
 pub fn should_join_identifier(prev_line: &str, next_line: &str) -> bool {

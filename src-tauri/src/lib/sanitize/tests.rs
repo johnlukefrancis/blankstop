@@ -86,14 +86,57 @@ fn does_not_join_return_fallback_identifier() {
 
 #[test]
 fn unwraps_return_with_indented_fallback() {
-    let input = "return\n  fallback\n";
+    let input = concat!(
+        "const header = \"this is a fairly long line to anchor wrap width\";\n",
+        "const note = \"another long line to keep widths consistent\";\n",
+        "const result = computeSomethingVerbose(return\n",
+        "  fallback);\n"
+    );
     let result = sanitize_text(input);
-    assert_eq!(result.output, "return fallback");
+    assert_eq!(
+        result.output,
+        concat!(
+            "const header = \"this is a fairly long line to anchor wrap width\";\n",
+            "const note = \"another long line to keep widths consistent\";\n",
+            "const result = computeSomethingVerbose(return fallback);"
+        )
+    );
 }
 
 #[test]
 fn unwraps_pick_screen_with_bracket() {
-    let input = "pick(screen,\n[\"width\"])";
+    let input = concat!(
+        "const header = \"this is a fairly long line to anchor wrap width\";\n",
+        "const note = \"another long line to keep widths consistent\";\n",
+        "const metrics = pick(screen,\n",
+        "[\"width\"]);"
+    );
     let result = sanitize_text(input);
-    assert_eq!(result.output, "pick(screen, [\"width\"])");
+    assert_eq!(
+        result.output,
+        concat!(
+            "const header = \"this is a fairly long line to anchor wrap width\";\n",
+            "const note = \"another long line to keep widths consistent\";\n",
+            "const metrics = pick(screen, [\"width\"]);"
+        )
+    );
+}
+
+#[test]
+fn unwraps_emoji_punctuation_wraps() {
+    let input = concat!(
+        "const header = \"🚀 release: punctuation, commas, semicolons; brackets [a, b, c]\";\n",
+        "const note = \"status: ok, version: 1.2.3, build: 4567\";\n",
+        "const detail = \"emoji 🚀 and punctuation: [one,\n",
+        "two, three]\";\n"
+    );
+    let result = sanitize_text(input);
+    assert_eq!(
+        result.output,
+        concat!(
+            "const header = \"🚀 release: punctuation, commas, semicolons; brackets [a, b, c]\";\n",
+            "const note = \"status: ok, version: 1.2.3, build: 4567\";\n",
+            "const detail = \"emoji 🚀 and punctuation: [one, two, three]\";"
+        )
+    );
 }

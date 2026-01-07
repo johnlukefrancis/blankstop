@@ -109,14 +109,18 @@ async function listFilesFallback(rootDir, relativeRoot = '') {
 async function getFilesForBundle(roots) {
   const gitFiles = await listGitFiles(roots);
   if (gitFiles.length > 0) {
-    return gitFiles;
+    return gitFiles.filter((file) => !file.startsWith('scripts/zip/output/'));
   }
   const fallback = [];
   for (const root of roots) {
     const rootPath = path.join(repoRoot, root);
     try {
       const files = await listFilesFallback(rootPath);
-      fallback.push(...files.map((file) => path.join(root, file).replace(/\\/g, '/')));
+      fallback.push(
+        ...files
+          .map((file) => path.join(root, file).replace(/\\/g, '/'))
+          .filter((file) => !file.startsWith('scripts/zip/output/')),
+      );
     } catch {
       // ignore missing roots
     }
@@ -303,6 +307,7 @@ const includeDocs = args.includes('--docs') || args.includes('--docs-only');
 const bundles = [
   { bundleName: 'app', roots: ['app'] },
   { bundleName: 'src_tauri', roots: ['src-tauri'] },
+  { bundleName: 'scripts', roots: ['scripts'] },
 ];
 
 if (includeDocs) {

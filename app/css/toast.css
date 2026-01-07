@@ -19,12 +19,15 @@ body.toast-mode {
   box-shadow: 0 18px 40px rgba(4, 12, 18, 0.45);
   transform: translateY(14px);
   opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 #toast-root.show {
   opacity: 1;
   transform: translateY(0);
+  visibility: visible;
 }
 
 .title {

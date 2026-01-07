@@ -5,7 +5,7 @@ document.body.classList.toggle("toast-mode", isToast);
 document.body.classList.toggle("settings-mode", !isToast);
 
 if (isToast) {
-  import("./toast");
+  import("../ui/toast");
 } else {
   import("./settings");
 }

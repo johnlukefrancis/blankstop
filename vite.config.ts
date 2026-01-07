@@ -6,7 +6,7 @@ const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
 export default defineConfig(async () => ({
-  root: resolve(__dirname, "ui"),
+  root: resolve(__dirname, "app"),
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
@@ -34,7 +34,7 @@ export default defineConfig(async () => ({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: resolve(__dirname, "ui/index.html"),
+        main: resolve(__dirname, "app/index.html"),
       },
     },
   },

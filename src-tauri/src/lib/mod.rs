@@ -1,4 +1,5 @@
 mod commands;
+#[cfg(any(target_os = "windows", test))]
 mod sanitize;
 mod state;
 mod toast;

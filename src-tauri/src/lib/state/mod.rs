@@ -1,13 +1,20 @@
 mod config;
+#[cfg(target_os = "windows")]
 mod hash;
 mod io;
 mod models;
 mod runtime;
+#[cfg(target_os = "windows")]
 mod time;
 
-pub use config::{normalize_allowlist, Config};
-pub use hash::hash_text;
-pub use io::{config_path, load_config, save_config};
+pub use config::Config;
+pub use io::{load_config, save_config};
 pub use models::{AppState, LogEntry, UiState};
-pub use runtime::{emit_ui_state, is_paused, new_shared_state, push_log, ui_state, SharedState};
+pub use runtime::{emit_ui_state, is_paused, new_shared_state, ui_state, SharedState};
+
+#[cfg(target_os = "windows")]
+pub use hash::hash_text;
+#[cfg(target_os = "windows")]
+pub use runtime::push_log;
+#[cfg(target_os = "windows")]
 pub use time::now_ms;

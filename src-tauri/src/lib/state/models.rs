@@ -17,6 +17,7 @@ pub struct UiState {
     pub log: Vec<LogEntry>,
 }
 
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
 pub struct AppState {
     pub config: Config,
     pub paused_until: Option<Instant>,

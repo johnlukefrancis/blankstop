@@ -25,6 +25,7 @@ pub fn is_paused(state: &AppState) -> bool {
         .unwrap_or(false)
 }
 
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
 pub fn push_log(state: &mut AppState, entry: LogEntry) {
     state.log.insert(0, entry);
     if state.log.len() > 10 {

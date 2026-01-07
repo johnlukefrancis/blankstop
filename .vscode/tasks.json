@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Rust: check",
+      "type": "shell",
+      "command": "cargo check",
+      "options": {
+        "cwd": "${workspaceFolder}/src-tauri"
+      },
+      "group": "build"
+    },
+    {
+      "label": "Rust: build",
+      "type": "shell",
+      "command": "cargo build",
+      "options": {
+        "cwd": "${workspaceFolder}/src-tauri"
+      },
+      "group": "build"
+    },
+    {
+      "label": "Rust: test",
+      "type": "shell",
+      "command": "cargo test",
+      "options": {
+        "cwd": "${workspaceFolder}/src-tauri"
+      },
+      "group": "test"
+    },
+    {
+      "label": "Rust: clippy",
+      "type": "shell",
+      "command": "cargo clippy",
+      "options": {
+        "cwd": "${workspaceFolder}/src-tauri"
+      },
+      "group": "test"
+    }
+  ]
+}

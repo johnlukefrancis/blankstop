@@ -4,7 +4,6 @@ use super::lines::LineMeta;
 pub struct BoundaryContext {
     pub paren_depth: usize,
     pub bracket_depth: usize,
-    pub brace_depth: usize,
     pub in_string: bool,
     pub in_block_comment: bool,
 }
@@ -17,7 +16,6 @@ pub fn build_boundary_contexts(lines: &[LineMeta]) -> Vec<BoundaryContext> {
     let mut contexts = Vec::with_capacity(lines.len() - 1);
     let mut paren_depth = 0usize;
     let mut bracket_depth = 0usize;
-    let mut brace_depth = 0usize;
     let mut in_single = false;
     let mut in_double = false;
     let mut in_backtick = false;
@@ -84,8 +82,6 @@ pub fn build_boundary_contexts(lines: &[LineMeta]) -> Vec<BoundaryContext> {
                 ')' => paren_depth = paren_depth.saturating_sub(1),
                 '[' => bracket_depth += 1,
                 ']' => bracket_depth = bracket_depth.saturating_sub(1),
-                '{' => brace_depth += 1,
-                '}' => brace_depth = brace_depth.saturating_sub(1),
                 _ => {}
             }
         }
@@ -93,7 +89,6 @@ pub fn build_boundary_contexts(lines: &[LineMeta]) -> Vec<BoundaryContext> {
         contexts.push(BoundaryContext {
             paren_depth,
             bracket_depth,
-            brace_depth,
             in_string: in_single || in_double || in_backtick,
             in_block_comment,
         });

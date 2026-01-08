@@ -142,3 +142,26 @@ fn does_not_join_object_properties_at_depth0() {
         )
     );
 }
+
+#[test]
+fn does_not_join_dedented_property_start() {
+    let input = concat!(
+        "const report = {\n",
+        "  screen: safe(() => pick(screen,\n",
+        "  [\"width\"])),\n",
+        "trianglerain_globals: {\n",
+        "  enabled: true,\n",
+        "}\n"
+    );
+    let result = sanitize_text(input);
+    assert_eq!(
+        result.output,
+        concat!(
+            "const report = {\n",
+            "  screen: safe(() => pick(screen, [\"width\"])),\n",
+            "trianglerain_globals: {\n",
+            "  enabled: true,\n",
+            "}"
+        )
+    );
+}

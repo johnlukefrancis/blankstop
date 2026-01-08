@@ -58,7 +58,8 @@ pub fn decide_join(
         };
     }
 
-    if next.leading_ws_count == prev.leading_ws_count
+    if !ctx.in_string
+        && !ctx.in_block_comment
         && looks_like_property_start(next_trim_start)
     {
         return JoinDecision {
@@ -91,16 +92,13 @@ pub fn decide_join(
     if ctx.paren_depth > 0 || ctx.bracket_depth > 0 {
         score += 3;
     }
-    if ctx.brace_depth > 0 && next.leading_ws_count > prev.leading_ws_count {
-        score += 1;
+    if ctx.in_string && continuation_punct(prev_trim, next_trim_start) {
+        return JoinDecision {
+            join: true,
+            insert_space: true,
+        };
     }
     if ctx.in_string {
-        score += 1;
-    }
-    if next.leading_ws_count > 0 {
-        score += 1;
-    }
-    if next.leading_ws_count < prev.leading_ws_count {
         score += 1;
     }
     if continuation_punct(prev_trim, next_trim_start) {

@@ -22,6 +22,10 @@ pub fn sanitize_js(text: &str) -> Option<String> {
     parse::parse_and_codegen(&candidate).ok().map(|_| candidate)
 }
 
+pub fn is_valid_js(text: &str) -> bool {
+    parse::parse_and_codegen(text).is_ok()
+}
+
 fn has_js_signal(text: &str) -> bool {
     if text.contains("=>") {
         return true;

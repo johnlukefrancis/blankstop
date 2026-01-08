@@ -1,4 +1,5 @@
 use super::sanitize_text;
+use super::js;
 
 #[test]
 fn wrapped_commit_subject_example() {
@@ -208,4 +209,25 @@ fn strips_leading_bullet_prefix_for_codeish_lines() {
     let input = "• const a = 1;\n";
     let result = sanitize_text(input);
     assert_eq!(result.output, "const a = 1;");
+}
+
+#[test]
+fn js_cli_wrapped_fixture_validates_and_preserves_properties() {
+    let input = include_str!("fixtures/cli_wrapped_report.txt");
+    let result = sanitize_text(input);
+
+    assert!(
+        result
+            .output
+            .contains("screen: safe(() => pick(screen, [\"width\",\"height\",\"availWidth\",\"availHeight\"], null)"),
+        "screen pick line missing or malformed"
+    );
+    assert!(
+        result.output.contains("trianglerain_globals:"),
+        "trianglerain_globals property missing or moved"
+    );
+    assert!(
+        js::is_valid_js(&result.output),
+        "js parser rejected sanitized output"
+    );
 }

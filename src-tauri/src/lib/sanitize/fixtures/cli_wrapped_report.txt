@@ -1,0 +1,18 @@
+(function () {
+  const report = {
+    screen: safe(() => pick(screen,
+    ["width","height","availWidth","availHeight"], null),
+    platform: safe(() =>
+      navigator.platform - pick(screen,
+      ["width","height","availWidth","availHeight"], null),
+    fallback: safe(() => value ? pick(data,
+    ["used","total","limit"]) : null, null),
+    trianglerain_globals: {
+      enabled: true,
+      version: "1.2.3",
+    },
+  };
+  const fallback = report.fallback;
+  return
+    fallback;
+})()

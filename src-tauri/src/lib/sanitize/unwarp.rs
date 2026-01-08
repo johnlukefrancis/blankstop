@@ -1,9 +1,11 @@
 use super::boundaries::decide_join;
+use super::context::build_boundary_contexts;
 use super::lines::LineMeta;
 use super::profile::WrapProfile;
 use super::SanitizeSummary;
 
 pub fn unwarp_lines(lines: &[LineMeta], profile: &WrapProfile, summary: &mut SanitizeSummary) -> String {
+    let contexts = build_boundary_contexts(lines);
     let mut out_lines = Vec::new();
     let mut i = 0usize;
     while i < lines.len() {
@@ -15,6 +17,10 @@ pub fn unwarp_lines(lines: &[LineMeta], profile: &WrapProfile, summary: &mut San
                 &lines[prev_index],
                 &lines[next_index],
                 profile,
+                contexts
+                    .get(prev_index)
+                    .copied()
+                    .unwrap_or_default(),
             );
             if !decision.join {
                 break;

@@ -7,36 +7,29 @@ pub struct WrapProfile {
 }
 
 pub fn estimate_wrap_profile(lines: &[LineMeta]) -> WrapProfile {
-    // Invariant: estimate from raw line lengths (including padding) using a tolerant ±2 cluster.
-    let mut long_lengths = Vec::new();
+    // Invariant: wrap width is optional and based on a tail of raw lengths (padding helps but is not required).
+    let mut lengths = Vec::new();
     for line in lines {
         if line.trimmed_end.trim().is_empty() {
             continue;
         }
-        if line.raw_len_chars >= 40 {
-            long_lengths.push(line.raw_len_chars);
-        }
+        lengths.push(line.raw_len_chars);
     }
 
-    let wrap_width = if long_lengths.len() < 2 {
+    let wrap_width = if lengths.len() < 2 {
         None
     } else {
-        let mut best_cluster: Vec<usize> = Vec::new();
-        for center in &long_lengths {
-            let cluster: Vec<usize> = long_lengths
-                .iter()
-                .cloned()
-                .filter(|len| (*len as isize - *center as isize).abs() <= 2)
-                .collect();
-            if cluster.len() > best_cluster.len() {
-                best_cluster = cluster;
-            }
-        }
-        if best_cluster.len() >= 2 {
-            let sum: usize = best_cluster.iter().sum();
-            Some((sum + best_cluster.len() / 2) / best_cluster.len())
+        let max_len = *lengths.iter().max().unwrap();
+        let tail: Vec<usize> = lengths
+            .into_iter()
+            .filter(|len| *len + 8 >= max_len)
+            .collect();
+        if tail.len() >= 2 {
+            let mut sorted = tail;
+            sorted.sort_unstable();
+            Some(sorted[sorted.len() / 2])
         } else {
-            Some(*long_lengths.iter().max().unwrap())
+            None
         }
     };
 

@@ -1,5 +1,6 @@
 mod normalize;
 mod clean;
+mod js;
 mod boundaries;
 mod context;
 mod heuristics;
@@ -23,6 +24,7 @@ pub struct SanitizeSummary {
     pub trimmed_blank_lines: usize,
     pub removed_invisibles: usize,
     pub stripped_prefixes: usize,
+    pub js_validated: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -34,6 +36,32 @@ pub struct SanitizeResult {
 
 pub fn sanitize_text(input: &str) -> SanitizeResult {
     let clean = clean_text(input);
+    if js::looks_js_like(&clean.text) {
+        if let Some(output) = js::sanitize_js(&clean.text) {
+            return SanitizeResult {
+                output,
+                summary: SanitizeSummary {
+                    unwrapped_lines: 0,
+                    trimmed_trailing_ws: 0,
+                    trimmed_blank_lines: 0,
+                    removed_invisibles: clean.removed_invisibles,
+                    stripped_prefixes: clean.stripped_prefixes,
+                    js_validated: true,
+                },
+            };
+        }
+        return SanitizeResult {
+            output: clean.normalized,
+            summary: SanitizeSummary {
+                unwrapped_lines: 0,
+                trimmed_trailing_ws: 0,
+                trimmed_blank_lines: 0,
+                removed_invisibles: clean.removed_invisibles,
+                stripped_prefixes: clean.stripped_prefixes,
+                js_validated: false,
+            },
+        };
+    }
     let (mut lines, trimmed_trailing_ws) = build_line_meta(&clean.text);
     let trimmed_blank_lines = trim_blank_edges(&mut lines);
 
@@ -46,6 +74,7 @@ pub fn sanitize_text(input: &str) -> SanitizeResult {
                 trimmed_blank_lines,
                 removed_invisibles: clean.removed_invisibles,
                 stripped_prefixes: clean.stripped_prefixes,
+                js_validated: false,
             },
         };
     }
@@ -56,6 +85,7 @@ pub fn sanitize_text(input: &str) -> SanitizeResult {
         trimmed_blank_lines,
         removed_invisibles: clean.removed_invisibles,
         stripped_prefixes: clean.stripped_prefixes,
+        js_validated: false,
     };
 
     let trimmed_lines: Vec<String> = lines.iter().map(|line| line.trimmed_end.clone()).collect();
@@ -109,6 +139,9 @@ impl SanitizeSummary {
                 self.stripped_prefixes,
                 if self.stripped_prefixes == 1 { "" } else { "es" }
             ));
+        }
+        if self.js_validated {
+            parts.push("js validated".to_string());
         }
         if parts.is_empty() {
             "Sanitized clipboard".to_string()

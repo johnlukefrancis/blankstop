@@ -3,6 +3,7 @@ use super::normalize::normalize_line_endings;
 #[derive(Debug, Clone)]
 pub struct CleanResult {
     pub text: String,
+    pub normalized: String,
     pub removed_invisibles: usize,
     pub stripped_prefixes: usize,
 }
@@ -28,6 +29,7 @@ pub fn clean_text(input: &str) -> CleanResult {
 
     CleanResult {
         text,
+        normalized,
         removed_invisibles,
         stripped_prefixes,
     }

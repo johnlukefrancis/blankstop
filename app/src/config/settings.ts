@@ -50,6 +50,8 @@ function initSettings() {
     status: document.getElementById("status-pill") as HTMLDivElement,
     lastSource: document.getElementById("last-source") as HTMLSpanElement,
     log: document.getElementById("log") as HTMLDivElement,
+    debugSummary: document.getElementById("debug-summary") as HTMLPreElement,
+    debugClipboard: document.getElementById("debug-clipboard") as HTMLPreElement,
   };
 
   let currentState: UiState | null = null;
@@ -74,6 +76,8 @@ function initSettings() {
     elements.status.textContent = state.config.enabled ? "Enabled" : "Disabled";
     elements.status.classList.toggle("disabled", !state.config.enabled);
     elements.lastSource.textContent = state.last_source_exe ?? "None";
+    elements.debugSummary.textContent = state.debug_last_summary ?? "None";
+    elements.debugClipboard.textContent = state.debug_last_clipboard ?? "None";
     renderLog(state.log);
     applying = false;
   }

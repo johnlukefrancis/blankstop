@@ -175,6 +175,21 @@ textarea {
   color: var(--muted);
 }
 
+.debug-text {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(10, 18, 26, 0.6);
+  color: var(--text);
+  font-family: "Cascadia Mono", "Consolas", "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  max-height: 220px;
+  overflow: auto;
+}
+
 @media (max-width: 640px) {
   .app {
     padding: 20px;

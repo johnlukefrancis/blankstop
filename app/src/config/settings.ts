@@ -52,6 +52,9 @@ function initSettings() {
     log: document.getElementById("log") as HTMLDivElement,
     debugSummary: document.getElementById("debug-summary") as HTMLPreElement,
     debugClipboard: document.getElementById("debug-clipboard") as HTMLPreElement,
+    debugClipboardEscaped: document.getElementById(
+      "debug-clipboard-escaped",
+    ) as HTMLPreElement,
   };
 
   let currentState: UiState | null = null;
@@ -77,7 +80,11 @@ function initSettings() {
     elements.status.classList.toggle("disabled", !state.config.enabled);
     elements.lastSource.textContent = state.last_source_exe ?? "None";
     elements.debugSummary.textContent = state.debug_last_summary ?? "None";
-    elements.debugClipboard.textContent = state.debug_last_clipboard ?? "None";
+    const lastClipboard = state.debug_last_clipboard;
+    elements.debugClipboard.textContent = lastClipboard ?? "None";
+    elements.debugClipboardEscaped.textContent = lastClipboard
+      ? toVisibleDebug(lastClipboard)
+      : "None";
     renderLog(state.log);
     applying = false;
   }
@@ -149,4 +156,41 @@ function initSettings() {
 
   setupListeners();
   loadState();
+}
+
+function toVisibleDebug(input: string): string {
+  let out = "";
+  for (const ch of input) {
+    if (ch === "\r") {
+      out += "\\r";
+      continue;
+    }
+    if (ch === "\n") {
+      out += "\\n\n";
+      continue;
+    }
+    if (isInvisibleFormatChar(ch)) {
+      const code = ch.codePointAt(0);
+      if (code !== undefined) {
+        out += `\\u{${code.toString(16).toUpperCase().padStart(4, "0")}}`;
+      }
+      continue;
+    }
+    out += ch;
+  }
+  return out;
+}
+
+function isInvisibleFormatChar(ch: string): boolean {
+  switch (ch) {
+    case "\u200B":
+    case "\u200C":
+    case "\u200D":
+    case "\u2060":
+    case "\uFEFF":
+    case "\u00AD":
+      return true;
+    default:
+      return false;
+  }
 }

@@ -175,3 +175,37 @@ fn does_not_join_property_start_even_if_indent_differs() {
         "  screen: true,\ntrianglerain_globals: {}"
     );
 }
+
+#[test]
+fn does_not_join_semicolon_boundary_with_zero_width_space() {
+    let input = "const a = 1;\u{200B}\nconst b = 2;\n";
+    let result = sanitize_text(input);
+    assert_eq!(result.output, "const a = 1;\nconst b = 2;");
+}
+
+#[test]
+fn does_not_join_property_start_with_leading_zero_width_space() {
+    let input = concat!(
+        "const report = {\n",
+        "  screen: true,\n",
+        "}\n",
+        "\u{200B}trianglerain_globals: {}\n"
+    );
+    let result = sanitize_text(input);
+    assert_eq!(
+        result.output,
+        concat!(
+            "const report = {\n",
+            "  screen: true,\n",
+            "}\n",
+            "trianglerain_globals: {}"
+        )
+    );
+}
+
+#[test]
+fn strips_leading_bullet_prefix_for_codeish_lines() {
+    let input = "• const a = 1;\n";
+    let result = sanitize_text(input);
+    assert_eq!(result.output, "const a = 1;");
+}

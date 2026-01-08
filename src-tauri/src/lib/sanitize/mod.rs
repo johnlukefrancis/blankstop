@@ -1,4 +1,5 @@
 mod normalize;
+mod clean;
 mod boundaries;
 mod context;
 mod heuristics;
@@ -10,7 +11,7 @@ mod unwarp;
 use serde::Serialize;
 
 use lines::{build_line_meta, trim_blank_edges};
-use normalize::normalize_line_endings;
+use clean::clean_text;
 use profile::estimate_wrap_profile;
 use unwarp::unwarp_lines;
 use wrap::{join_wrapped_single_line, should_rule_a};
@@ -20,6 +21,8 @@ pub struct SanitizeSummary {
     pub unwrapped_lines: usize,
     pub trimmed_trailing_ws: usize,
     pub trimmed_blank_lines: usize,
+    pub removed_invisibles: usize,
+    pub stripped_prefixes: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -30,8 +33,8 @@ pub struct SanitizeResult {
 }
 
 pub fn sanitize_text(input: &str) -> SanitizeResult {
-    let normalized = normalize_line_endings(input);
-    let (mut lines, trimmed_trailing_ws) = build_line_meta(&normalized);
+    let clean = clean_text(input);
+    let (mut lines, trimmed_trailing_ws) = build_line_meta(&clean.text);
     let trimmed_blank_lines = trim_blank_edges(&mut lines);
 
     if lines.is_empty() {
@@ -41,6 +44,8 @@ pub fn sanitize_text(input: &str) -> SanitizeResult {
                 unwrapped_lines: 0,
                 trimmed_trailing_ws,
                 trimmed_blank_lines,
+                removed_invisibles: clean.removed_invisibles,
+                stripped_prefixes: clean.stripped_prefixes,
             },
         };
     }
@@ -49,6 +54,8 @@ pub fn sanitize_text(input: &str) -> SanitizeResult {
         unwrapped_lines: 0,
         trimmed_trailing_ws,
         trimmed_blank_lines,
+        removed_invisibles: clean.removed_invisibles,
+        stripped_prefixes: clean.stripped_prefixes,
     };
 
     let trimmed_lines: Vec<String> = lines.iter().map(|line| line.trimmed_end.clone()).collect();
@@ -87,6 +94,20 @@ impl SanitizeSummary {
                 "trimmed {} blank line{}",
                 self.trimmed_blank_lines,
                 if self.trimmed_blank_lines == 1 { "" } else { "s" }
+            ));
+        }
+        if self.removed_invisibles > 0 {
+            parts.push(format!(
+                "removed {} invisible char{}",
+                self.removed_invisibles,
+                if self.removed_invisibles == 1 { "" } else { "s" }
+            ));
+        }
+        if self.stripped_prefixes > 0 {
+            parts.push(format!(
+                "stripped {} bullet prefix{}",
+                self.stripped_prefixes,
+                if self.stripped_prefixes == 1 { "" } else { "es" }
             ));
         }
         if parts.is_empty() {

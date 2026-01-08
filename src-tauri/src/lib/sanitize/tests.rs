@@ -165,3 +165,13 @@ fn does_not_join_dedented_property_start() {
         )
     );
 }
+
+#[test]
+fn does_not_join_property_start_even_if_indent_differs() {
+    let input = "  screen: true,\ntrianglerain_globals: {}";
+    let result = sanitize_text(input);
+    assert_eq!(
+        result.output,
+        "  screen: true,\ntrianglerain_globals: {}"
+    );
+}

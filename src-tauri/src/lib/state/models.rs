@@ -15,6 +15,8 @@ pub struct UiState {
     pub config: Config,
     pub last_source_exe: Option<String>,
     pub log: Vec<LogEntry>,
+    pub debug_last_clipboard: Option<String>,
+    pub debug_last_summary: Option<String>,
 }
 
 #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
@@ -25,4 +27,6 @@ pub struct AppState {
     pub self_write_until: Option<Instant>,
     pub last_source_exe: Option<String>,
     pub log: Vec<LogEntry>,
+    pub debug_last_clipboard: Option<String>,
+    pub debug_last_summary: Option<String>,
 }

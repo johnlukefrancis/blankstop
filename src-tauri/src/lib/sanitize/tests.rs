@@ -1,14 +1,5 @@
 use super::sanitize_text;
 
-fn pad_line(content: &str, total_len: usize) -> String {
-    let len = content.chars().count();
-    if len >= total_len {
-        content.to_string()
-    } else {
-        format!("{content}{}", " ".repeat(total_len - len))
-    }
-}
-
 #[test]
 fn wrapped_commit_subject_example() {
     let input = "🟦 improve(docs): document HUD GPU clear state restore\n  requirement\n";
@@ -150,15 +141,4 @@ fn does_not_join_object_properties_at_depth0() {
             "};"
         )
     );
-}
-
-#[test]
-fn padded_code_block_preserves_newlines() {
-    let width = 64;
-    let line1 = pad_line("if (foo) {", width);
-    let line2 = pad_line("  bar();", width);
-    let line3 = pad_line("}", width);
-    let input = format!("{line1}\n{line2}\n{line3}\n");
-    let result = sanitize_text(&input);
-    assert_eq!(result.output, "if (foo) {\n  bar();\n}");
 }

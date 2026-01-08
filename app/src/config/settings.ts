@@ -24,6 +24,8 @@ type UiState = {
   config: Config;
   last_source_exe: string | null;
   log: LogEntry[];
+  debug_last_clipboard: string | null;
+  debug_last_summary: string | null;
 };
 
 const search = new URLSearchParams(window.location.search);

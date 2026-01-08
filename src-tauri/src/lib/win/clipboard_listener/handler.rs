@@ -6,7 +6,8 @@ use windows::Win32::Foundation::HWND;
 use super::clipboard::{read_clipboard_text, write_clipboard_text};
 use crate::sanitize::sanitize_text;
 use crate::state::{
-    emit_ui_state, hash_text, is_paused, now_ms, push_log, LogEntry, SharedState,
+    emit_ui_state, hash_text, is_paused, now_ms, push_log, set_debug_capture, LogEntry,
+    SharedState,
 };
 use crate::toast::show_toast;
 use crate::win::process::clipboard_owner_exe_name;
@@ -60,6 +61,11 @@ pub fn handle_clipboard_update(app: &AppHandle, state: &SharedState, hwnd: HWND)
     }
 
     let result = sanitize_text(&text);
+    let toast_message = result.summary.toast_message();
+    {
+        let mut guard = state.lock().expect("state mutex poisoned");
+        set_debug_capture(&mut guard, &text, &toast_message);
+    }
     let normalized_input = text.replace("\r\n", "\n").replace('\r', "\n");
     if result.output == normalized_input {
         return;
@@ -70,7 +76,6 @@ pub fn handle_clipboard_update(app: &AppHandle, state: &SharedState, hwnd: HWND)
         return;
     }
 
-    let toast_message = result.summary.toast_message();
     {
         let mut guard = state.lock().expect("state mutex poisoned");
         guard.last_written_hash = Some(hash_text(&output_for_clipboard));

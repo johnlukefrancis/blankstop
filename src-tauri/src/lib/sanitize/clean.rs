@@ -36,9 +36,19 @@ pub fn clean_text(input: &str) -> CleanResult {
 }
 
 fn is_invisible_format_char(ch: char) -> bool {
+    if ch.is_control() && !matches!(ch, '\n' | '\r' | '\t') {
+        return true;
+    }
     matches!(
         ch,
-        '\u{200B}' | '\u{200C}' | '\u{200D}' | '\u{2060}' | '\u{FEFF}' | '\u{00AD}'
+        '\u{00AD}'
+            | '\u{061C}'
+            | '\u{180E}'
+            | '\u{200B}'..='\u{200F}'
+            | '\u{202A}'..='\u{202E}'
+            | '\u{2060}'..='\u{2064}'
+            | '\u{2066}'..='\u{2069}'
+            | '\u{FEFF}'
     )
 }
 

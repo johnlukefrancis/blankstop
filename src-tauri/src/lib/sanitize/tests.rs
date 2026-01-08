@@ -231,3 +231,23 @@ fn js_cli_wrapped_fixture_validates_and_preserves_properties() {
         "js parser rejected sanitized output"
     );
 }
+
+#[test]
+fn does_not_join_property_start_with_leading_bidi_mark() {
+    let input = concat!(
+        "const report = {\n",
+        "  screen: true,\n",
+        "}\n",
+        "\u{200E}trianglerain_globals: {}\n"
+    );
+    let result = sanitize_text(input);
+    assert_eq!(
+        result.output,
+        concat!(
+            "const report = {\n",
+            "  screen: true,\n",
+            "}\n",
+            "trianglerain_globals: {}"
+        )
+    );
+}

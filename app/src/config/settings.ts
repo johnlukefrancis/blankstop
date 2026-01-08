@@ -169,7 +169,7 @@ function toVisibleDebug(input: string): string {
       out += "\\n\n";
       continue;
     }
-    if (isInvisibleFormatChar(ch)) {
+    if (isInvisibleOrControlChar(ch)) {
       const code = ch.codePointAt(0);
       if (code !== undefined) {
         out += `\\u{${code.toString(16).toUpperCase().padStart(4, "0")}}`;
@@ -181,16 +181,32 @@ function toVisibleDebug(input: string): string {
   return out;
 }
 
-function isInvisibleFormatChar(ch: string): boolean {
-  switch (ch) {
-    case "\u200B":
-    case "\u200C":
-    case "\u200D":
-    case "\u2060":
-    case "\uFEFF":
-    case "\u00AD":
-      return true;
-    default:
-      return false;
+function isInvisibleOrControlChar(ch: string): boolean {
+  const code = ch.codePointAt(0);
+  if (code === undefined) {
+    return false;
   }
+  if (code <= 0x1f || (code >= 0x7f && code <= 0x9f)) {
+    return code !== 0x09 && code !== 0x0a && code !== 0x0d;
+  }
+  return isInvisibleFormatCodepoint(code);
+}
+
+function isInvisibleFormatCodepoint(code: number): boolean {
+  if (code === 0x00ad || code === 0x061c || code === 0x180e || code === 0xfeff) {
+    return true;
+  }
+  if (code >= 0x200b && code <= 0x200f) {
+    return true;
+  }
+  if (code >= 0x202a && code <= 0x202e) {
+    return true;
+  }
+  if (code >= 0x2060 && code <= 0x2064) {
+    return true;
+  }
+  if (code >= 0x2066 && code <= 0x2069) {
+    return true;
+  }
+  return false;
 }

@@ -14,20 +14,6 @@
     <main class="settings">
       <div class="settings__left">
         <section class="section">
-          <h2 class="section__title">Status</h2>
-          <div class="status-info">
-            <div class="status-row">
-              <span class="status-label">Last source</span>
-              <span class="status-value" id="last-source">None</span>
-            </div>
-            <div class="status-row">
-              <span class="status-label">Last action</span>
-              <span class="status-value" id="last-action">Never</span>
-            </div>
-          </div>
-        </section>
-
-        <section class="section">
           <h2 class="section__title">Behavior</h2>
           <div class="toggle-group">
             <label class="toggle">
@@ -57,19 +43,30 @@
             </label>
           </div>
         </section>
+
+        <div class="status-info">
+          <div class="status-row">
+            <span class="status-label">Last source</span>
+            <span class="status-value" id="last-source">None</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label">Last action</span>
+            <span class="status-value" id="last-action">Never</span>
+          </div>
+        </div>
       </div>
 
       <section class="section settings__right">
-        <div class="section__header">
-          <h2 class="section__title">Allowlist</h2>
-          <button class="btn btn--ghost" id="reset-allowlist">Reset defaults</button>
-        </div>
-        <p class="hint">One executable per line</p>
+        <h2 class="section__title">Allowlist</h2>
         <textarea
           id="allowlist"
           class="textarea"
           placeholder="WindowsTerminal.exe&#10;Code.exe&#10;..."
         ></textarea>
+        <div class="section__footer">
+          <span class="hint">One executable per line</span>
+          <button class="link" id="reset-allowlist">Reset defaults</button>
+        </div>
       </section>
     </main>
 

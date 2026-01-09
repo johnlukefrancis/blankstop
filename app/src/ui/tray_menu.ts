@@ -1,6 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 
 type TrayMenuState = {
   enabled: boolean;
@@ -47,11 +46,8 @@ async function init() {
   elements.quit.addEventListener("click", () => handleAction("quit"));
 
   // Close on blur (click outside window)
-  const currentWindow = getCurrentWindow();
-  currentWindow.onFocusChanged(({ payload: focused }) => {
-    if (!focused) {
-      hideMenu();
-    }
+  window.addEventListener("blur", () => {
+    hideMenu();
   });
 }
 

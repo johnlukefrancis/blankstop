@@ -14,7 +14,7 @@ pub fn ensure_menu_window(app: &AppHandle) -> tauri::Result<()> {
     tauri::WebviewWindowBuilder::new(app, "tray-menu", WebviewUrl::App("index.html".into()))
         .initialization_script("window.__blankstopTrayMenu = true;")
         .decorations(false)
-        .shadow(true)
+        .shadow(false)
         .resizable(false)
         .focusable(true)
         .focused(false)

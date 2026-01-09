@@ -3,11 +3,17 @@
 /* Toast mode overrides */
 html.toast-mode,
 html.toast-mode body {
-  background: transparent;
+  background: transparent !important;
+  background-color: transparent !important;
   width: 100%;
   height: 100%;
   overflow: hidden;
   margin: 0;
+}
+
+/* Hide noise overlay in toast mode */
+html.toast-mode body::after {
+  display: none !important;
 }
 
 /* Hide toast by default in settings mode */

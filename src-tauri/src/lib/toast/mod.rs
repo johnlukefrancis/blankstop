@@ -16,6 +16,7 @@ pub fn ensure_toast_window(app: &AppHandle) -> tauri::Result<()> {
     )
     .initialization_script("window.__blankstopToast = true;")
     .decorations(false)
+    .shadow(false)
     .resizable(false)
     .focusable(false)
     .focused(false)

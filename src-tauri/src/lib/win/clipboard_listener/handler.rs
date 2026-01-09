@@ -13,6 +13,7 @@ use crate::toast::show_toast;
 use crate::win::process::{clipboard_owner_exe_name_strict, foreground_exe_name};
 
 const SELF_WRITE_WINDOW_MS: u64 = 700;
+const WRITE_FAIL_SUMMARY: &str = "clipboard write failed (locked)";
 
 pub fn handle_clipboard_update(app: &AppHandle, state: &SharedState, hwnd: HWND) {
     let now = Instant::now();
@@ -74,22 +75,31 @@ pub fn handle_clipboard_update(app: &AppHandle, state: &SharedState, hwnd: HWND)
     }
 
     let output_for_clipboard = result.output.replace("\n", "\r\n");
+    {
+        let mut guard = lock_state(state);
+        guard.self_write_until = Some(Instant::now() + Duration::from_millis(SELF_WRITE_WINDOW_MS));
+    }
     if write_clipboard_text(hwnd, &output_for_clipboard).is_err() {
+        let mut guard = lock_state(state);
+        apply_write_result(
+            &mut guard,
+            false,
+            0,
+            source_exe.clone(),
+            WRITE_FAIL_SUMMARY.to_string(),
+        );
+        emit_ui_state(app, state);
         return;
     }
 
     {
         let mut guard = lock_state(state);
-        guard.last_written_hash = Some(hash_text(&output_for_clipboard));
-        guard.self_write_until = Some(Instant::now() + Duration::from_millis(SELF_WRITE_WINDOW_MS));
-        guard.last_source_exe = source_exe.clone();
-        push_log(
+        apply_write_result(
             &mut guard,
-            LogEntry {
-                timestamp_ms: now_ms(),
-                source_exe,
-                summary: toast_message.clone(),
-            },
+            true,
+            hash_text(&output_for_clipboard),
+            source_exe.clone(),
+            toast_message.clone(),
         );
     }
 
@@ -136,22 +146,31 @@ pub fn sanitize_clipboard_now(app: &AppHandle, state: &SharedState) -> bool {
     }
 
     let output_for_clipboard = result.output.replace("\n", "\r\n");
+    {
+        let mut guard = lock_state(state);
+        guard.self_write_until = Some(Instant::now() + Duration::from_millis(SELF_WRITE_WINDOW_MS));
+    }
     if write_clipboard_text(hwnd, &output_for_clipboard).is_err() {
+        let mut guard = lock_state(state);
+        apply_write_result(
+            &mut guard,
+            false,
+            0,
+            source_exe.clone(),
+            WRITE_FAIL_SUMMARY.to_string(),
+        );
+        emit_ui_state(app, state);
         return false;
     }
 
     {
         let mut guard = lock_state(state);
-        guard.last_written_hash = Some(hash_text(&output_for_clipboard));
-        guard.self_write_until = Some(Instant::now() + Duration::from_millis(SELF_WRITE_WINDOW_MS));
-        guard.last_source_exe = source_exe.clone();
-        push_log(
+        apply_write_result(
             &mut guard,
-            LogEntry {
-                timestamp_ms: now_ms(),
-                source_exe,
-                summary: toast_message,
-            },
+            true,
+            hash_text(&output_for_clipboard),
+            source_exe.clone(),
+            toast_message,
         );
     }
 
@@ -159,9 +178,84 @@ pub fn sanitize_clipboard_now(app: &AppHandle, state: &SharedState) -> bool {
     true
 }
 
+fn apply_write_result(
+    state: &mut crate::state::AppState,
+    write_ok: bool,
+    written_hash: u64,
+    source_exe: Option<String>,
+    summary: String,
+) {
+    let log_source = source_exe.clone();
+    if write_ok {
+        state.last_written_hash = Some(written_hash);
+        state.last_source_exe = source_exe;
+    } else {
+        state.self_write_until = None;
+    }
+    push_log(
+        state,
+        LogEntry {
+            timestamp_ms: now_ms(),
+            source_exe: log_source,
+            summary,
+        },
+    );
+}
+
 fn format_sanitize_toast(_message: &str, source_exe: Option<&str>) -> String {
     match source_exe {
         Some(exe) => format!("✓ Sanitized from {}", exe),
         None => "✓ Clipboard sanitized".to_string(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::state::{AppState, Config};
+
+    fn base_state() -> AppState {
+        AppState {
+            config: Config::default(),
+            paused_until: None,
+            last_written_hash: None,
+            self_write_until: Some(Instant::now()),
+            last_source_exe: None,
+            log: Vec::new(),
+            debug_last_clipboard: None,
+            debug_last_summary: None,
+        }
+    }
+
+    #[test]
+    fn apply_write_result_clears_guard_on_failure() {
+        let mut state = base_state();
+        apply_write_result(
+            &mut state,
+            false,
+            123,
+            Some("wt.exe".to_string()),
+            WRITE_FAIL_SUMMARY.to_string(),
+        );
+        assert!(state.last_written_hash.is_none());
+        assert!(state.self_write_until.is_none());
+        assert_eq!(state.log.len(), 1);
+        assert_eq!(state.log[0].summary, WRITE_FAIL_SUMMARY);
+    }
+
+    #[test]
+    fn apply_write_result_sets_hash_on_success() {
+        let mut state = base_state();
+        apply_write_result(
+            &mut state,
+            true,
+            456,
+            Some("code.exe".to_string()),
+            "ok".to_string(),
+        );
+        assert_eq!(state.last_written_hash, Some(456));
+        assert!(state.self_write_until.is_some());
+        assert_eq!(state.log.len(), 1);
+        assert_eq!(state.log[0].summary, "ok");
     }
 }

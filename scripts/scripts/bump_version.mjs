@@ -28,20 +28,24 @@ async function updateJson(filePath, updater) {
 
 async function updateCargoToml(filePath, nextVersion) {
   const raw = await fs.readFile(filePath, 'utf8');
-  const packageMatch = raw.match(/\[package\][\s\S]*?(?=^\[|\s*$)/m);
-  if (!packageMatch) {
-    throw new Error('Cargo.toml missing [package] section.');
-  }
-  const packageSection = packageMatch[0];
-  const updatedSection = packageSection.replace(
-    /^version\s*=\s*"[^"]*"/m,
-    `version = "${nextVersion}"`,
-  );
-  if (updatedSection === packageSection) {
+  const lines = raw.split(/\r?\n/);
+  let inPackage = false;
+  let updated = false;
+  const nextLines = lines.map((line) => {
+    const trimmed = line.trim();
+    if (/^\[.*\]$/.test(trimmed)) {
+      inPackage = trimmed === '[package]';
+    }
+    if (inPackage && /^version\s*=/.test(trimmed)) {
+      updated = true;
+      return `version = "${nextVersion}"`;
+    }
+    return line;
+  });
+  if (!updated) {
     throw new Error('Cargo.toml [package] version not found.');
   }
-  const updated = raw.replace(packageSection, updatedSection);
-  await fs.writeFile(filePath, updated, 'utf8');
+  await fs.writeFile(filePath, `${nextLines.join('\n')}\n`, 'utf8');
 }
 
 await updateJson(path.join(repoRoot, 'package.json'), (data) => ({

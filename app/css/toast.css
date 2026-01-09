@@ -61,4 +61,5 @@ body.toast-mode {
 .message {
   font-size: 14px;
   color: #f5f7fa;
+  white-space: pre-line;
 }

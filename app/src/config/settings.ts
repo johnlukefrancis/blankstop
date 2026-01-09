@@ -64,10 +64,8 @@ function initSettings() {
     runOnStartup: document.getElementById("run_on_startup") as HTMLInputElement,
     allowlist: document.getElementById("allowlist") as HTMLTextAreaElement,
     resetAllowlist: document.getElementById("reset-allowlist") as HTMLButtonElement,
-    status: document.getElementById("status-pill") as HTMLDivElement,
     lastSource: document.getElementById("last-source") as HTMLSpanElement,
     lastAction: document.getElementById("last-action") as HTMLSpanElement,
-    log: document.getElementById("log") as HTMLDivElement,
   };
 
   let currentState: UiState | null = null;
@@ -90,8 +88,6 @@ function initSettings() {
     elements.onlyAllowlisted.checked = state.config.only_allowlisted;
     elements.runOnStartup.checked = state.config.run_on_startup;
     elements.allowlist.value = state.config.allowlist.join("\n");
-    elements.status.textContent = state.config.enabled ? "Enabled" : "Disabled";
-    elements.status.classList.toggle("disabled", !state.config.enabled);
     elements.lastSource.textContent = state.last_source_exe ?? "None";
 
     const lastEntry = state.log[0];
@@ -101,30 +97,7 @@ function initSettings() {
       elements.lastAction.textContent = "Never";
     }
 
-    renderLog(state.log);
     applying = false;
-  }
-
-  function renderLog(entries: LogEntry[]) {
-    elements.log.innerHTML = "";
-    if (!entries.length) {
-      const empty = document.createElement("div");
-      empty.className = "log-empty";
-      empty.textContent = "No sanitized events yet.";
-      elements.log.appendChild(empty);
-      return;
-    }
-    for (const entry of entries) {
-      const time = new Date(entry.timestamp_ms).toLocaleTimeString();
-      const source = entry.source_exe ? `from ${entry.source_exe}` : "";
-      const item = document.createElement("div");
-      item.className = "log-entry";
-      item.innerHTML = `
-        <div class="log-entry__summary">${entry.summary}</div>
-        <div class="log-entry__meta">${time} ${source}</div>
-      `.trim();
-      elements.log.appendChild(item);
-    }
   }
 
   async function saveConfig() {

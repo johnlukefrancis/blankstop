@@ -12,79 +12,65 @@
   </head>
   <body>
     <main class="settings">
-      <header class="settings__header">
-        <h1 class="settings__brand">BlankStop</h1>
-        <div class="status-pill" id="status-pill">Enabled</div>
-      </header>
-
-      <div class="settings__body">
-        <aside class="panel">
-          <section class="section">
-            <h2 class="section__title">Status</h2>
-            <div class="status-info">
-              <div class="status-row">
-                <span class="status-label">Last source</span>
-                <span class="status-value" id="last-source">None</span>
-              </div>
-              <div class="status-row">
-                <span class="status-label">Last action</span>
-                <span class="status-value" id="last-action">Never</span>
-              </div>
+      <div class="settings__left">
+        <section class="section">
+          <h2 class="section__title">Status</h2>
+          <div class="status-info">
+            <div class="status-row">
+              <span class="status-label">Last source</span>
+              <span class="status-value" id="last-source">None</span>
             </div>
-          </section>
-
-          <section class="section">
-            <h2 class="section__title">Behavior</h2>
-            <div class="toggle-group">
-              <label class="toggle">
-                <input id="enabled" type="checkbox" />
-                <span class="toggle__switch"></span>
-                <span class="toggle__label">Enabled</span>
-              </label>
-              <label class="toggle">
-                <input id="toast_enabled" type="checkbox" />
-                <span class="toggle__switch"></span>
-                <span class="toggle__label">Toast notifications</span>
-              </label>
-              <label class="toggle">
-                <input id="status_toast_enabled" type="checkbox" />
-                <span class="toggle__switch"></span>
-                <span class="toggle__label">Status change toasts</span>
-              </label>
-              <label class="toggle">
-                <input id="only_allowlisted" type="checkbox" />
-                <span class="toggle__switch"></span>
-                <span class="toggle__label">Only allowlisted apps</span>
-              </label>
-              <label class="toggle">
-                <input id="run_on_startup" type="checkbox" />
-                <span class="toggle__switch"></span>
-                <span class="toggle__label">Run on startup</span>
-              </label>
+            <div class="status-row">
+              <span class="status-label">Last action</span>
+              <span class="status-value" id="last-action">Never</span>
             </div>
-          </section>
-        </aside>
+          </div>
+        </section>
 
-        <div class="panel panel--main">
-          <section class="section">
-            <div class="section__header">
-              <h2 class="section__title">Allowlist</h2>
-              <button class="btn btn--ghost" id="reset-allowlist">Reset defaults</button>
-            </div>
-            <p class="hint">One executable per line</p>
-            <textarea
-              id="allowlist"
-              class="textarea"
-              placeholder="WindowsTerminal.exe&#10;Code.exe&#10;..."
-            ></textarea>
-          </section>
-
-          <section class="section" style="min-height: 0;">
-            <h2 class="section__title">Recent Activity</h2>
-            <div class="log-list scrollable" id="log"></div>
-          </section>
-        </div>
+        <section class="section">
+          <h2 class="section__title">Behavior</h2>
+          <div class="toggle-group">
+            <label class="toggle">
+              <input id="enabled" type="checkbox" />
+              <span class="toggle__switch"></span>
+              <span class="toggle__label">Enabled</span>
+            </label>
+            <label class="toggle">
+              <input id="toast_enabled" type="checkbox" />
+              <span class="toggle__switch"></span>
+              <span class="toggle__label">Toast notifications</span>
+            </label>
+            <label class="toggle">
+              <input id="status_toast_enabled" type="checkbox" />
+              <span class="toggle__switch"></span>
+              <span class="toggle__label">Status change toasts</span>
+            </label>
+            <label class="toggle">
+              <input id="only_allowlisted" type="checkbox" />
+              <span class="toggle__switch"></span>
+              <span class="toggle__label">Only allowlisted apps</span>
+            </label>
+            <label class="toggle">
+              <input id="run_on_startup" type="checkbox" />
+              <span class="toggle__switch"></span>
+              <span class="toggle__label">Run on startup</span>
+            </label>
+          </div>
+        </section>
       </div>
+
+      <section class="section settings__right">
+        <div class="section__header">
+          <h2 class="section__title">Allowlist</h2>
+          <button class="btn btn--ghost" id="reset-allowlist">Reset defaults</button>
+        </div>
+        <p class="hint">One executable per line</p>
+        <textarea
+          id="allowlist"
+          class="textarea"
+          placeholder="WindowsTerminal.exe&#10;Code.exe&#10;..."
+        ></textarea>
+      </section>
     </main>
 
     <div id="toast-root" class="toast">

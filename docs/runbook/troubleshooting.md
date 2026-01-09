@@ -44,6 +44,15 @@ Where to inspect:
 - Settings window (Enabled toggle).
 - `src-tauri/src/lib/tray/mod.rs` (toggle + pause logic).
 
+## Config file corrupt / config dir missing
+Likely causes:
+- `config.json` is malformed or partially written.
+- The app config directory is unavailable (permissions / missing profile).
+
+What the app does:
+- If `config.json` is corrupt, it is moved to `config.json.bad-<timestamp>` and defaults are loaded.
+- If the config directory is unavailable, the app runs with defaults and skips saving.
+
 ## Where to look (quick map)
 - Tray state + toggles: `src-tauri/src/lib/tray/mod.rs`
 - Toast pipeline: `src-tauri/src/lib/toast/mod.rs`

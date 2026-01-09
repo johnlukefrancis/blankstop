@@ -4,7 +4,10 @@ use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Manager, WebviewUrl, Wry};
 
-use crate::state::{emit_ui_state, is_paused, lock_state, save_config, Config, SharedState};
+use crate::state::{
+    emit_ui_state, is_paused, lock_state, now_ms, push_log, save_config, Config, LogEntry,
+    SharedState,
+};
 use crate::toast::show_toast;
 #[cfg(target_os = "windows")]
 use crate::win::clipboard_listener::sanitize_clipboard_now;
@@ -115,13 +118,14 @@ fn toggle_enabled(app: &AppHandle, state: &SharedState, show_toast_notification:
         guard.config.enabled = !guard.config.enabled;
         (guard.config.clone(), guard.last_source_exe.clone())
     };
-    if save_config(app, &config).is_ok() {
-        sync_menu(app, state);
-        emit_ui_state(app, state);
-        if show_toast_notification && config.status_toast_enabled {
-            let message = format_enabled_toast(config.enabled, source_exe.as_deref());
-            show_toast(app, message);
-        }
+    sync_menu(app, state);
+    emit_ui_state(app, state);
+    if show_toast_notification && config.status_toast_enabled {
+        let message = format_enabled_toast(config.enabled, source_exe.as_deref());
+        show_toast(app, message);
+    }
+    if let Err(err) = save_config(app, &config) {
+        log_save_error(state, err);
     }
 }
 
@@ -134,16 +138,17 @@ pub fn set_enabled_from_shortcut(app: &AppHandle, state: &SharedState) {
     toggle_enabled(app, state, true);
 }
 
-pub fn apply_config(app: &AppHandle, state: &SharedState, mut config: Config) -> Result<(), String> {
+pub fn apply_config(app: &AppHandle, state: &SharedState, mut config: Config) {
     config.normalize();
     {
         let mut guard = lock_state(state);
         guard.config = config.clone();
     }
-    save_config(app, &config)?;
     sync_menu(app, state);
     emit_ui_state(app, state);
-    Ok(())
+    if let Err(err) = save_config(app, &config) {
+        log_save_error(state, err);
+    }
 }
 
 fn open_settings_window(app: &AppHandle, state: &SharedState) {
@@ -171,4 +176,16 @@ fn format_enabled_toast(enabled: bool, _source_exe: Option<&str>) -> String {
     } else {
         "✗ Blankstop disabled".to_string()
     }
+}
+
+fn log_save_error(state: &SharedState, err: String) {
+    let mut guard = lock_state(state);
+    push_log(
+        &mut guard,
+        LogEntry {
+            timestamp_ms: now_ms(),
+            source_exe: None,
+            summary: format!("Config save failed: {err}"),
+        },
+    );
 }

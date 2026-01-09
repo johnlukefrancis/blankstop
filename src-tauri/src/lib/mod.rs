@@ -20,7 +20,7 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
             let app_handle = app.handle();
-            let config = state::load_config(app_handle);
+            let config = state::load_config(app_handle).unwrap_or_default();
             let shared_state = state::new_shared_state(config);
             app.manage(shared_state.clone());
 

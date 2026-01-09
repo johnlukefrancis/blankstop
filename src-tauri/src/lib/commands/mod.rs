@@ -15,7 +15,7 @@ pub fn update_config(
     state: State<SharedState>,
     config: Config,
 ) -> Result<UiState, String> {
-    apply_config(&app, state.inner(), config)?;
+    apply_config(&app, state.inner(), config);
     let guard = lock_state(state.inner());
     Ok(ui_state(&guard))
 }

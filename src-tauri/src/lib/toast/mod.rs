@@ -24,7 +24,7 @@ pub fn ensure_toast_window(app: &AppHandle) -> tauri::Result<()> {
     .visible(false)
     .always_on_top(true)
     .skip_taskbar(true)
-    .inner_size(360.0, 92.0)
+    .inner_size(320.0, 48.0)
     .build()?;
 
     let _ = window.set_ignore_cursor_events(true);
@@ -52,7 +52,7 @@ pub fn show_toast(app: &AppHandle, message: impl Into<String>) {
 }
 
 fn position_toast(window: &tauri::WebviewWindow) -> tauri::Result<()> {
-    let size = PhysicalSize::new(360, 92);
+    let size = PhysicalSize::new(320, 48);
     if let Some(monitor) = window.current_monitor()? {
         let work_area = monitor.work_area();
         let margin = 18i32;

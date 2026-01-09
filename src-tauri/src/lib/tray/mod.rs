@@ -53,7 +53,7 @@ pub fn init_tray(app: &AppHandle, state: SharedState) -> tauri::Result<()> {
                     show_toast(app, message);
                 }
                 "test_toast" => {
-                    show_toast(app, "Blankstop test toast");
+                    show_toast(app, "✓ Test toast");
                 }
                 "quit" => {
                     app.exit(0);
@@ -165,14 +165,10 @@ fn open_settings_window(app: &AppHandle, state: &SharedState) {
     }
 }
 
-fn format_enabled_toast(enabled: bool, source_exe: Option<&str>) -> String {
-    let base = if enabled {
-        "Blankstop enabled"
+fn format_enabled_toast(enabled: bool, _source_exe: Option<&str>) -> String {
+    if enabled {
+        "✓ Blankstop enabled".to_string()
     } else {
-        "Blankstop disabled"
-    };
-    match source_exe {
-        Some(exe) => format!("{} ({})", base, exe),
-        None => base.to_string(),
+        "✗ Blankstop disabled".to_string()
     }
 }

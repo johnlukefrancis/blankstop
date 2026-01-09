@@ -25,6 +25,17 @@ body {
     var(--bg-base);
 }
 
+/* Noise overlay to break up gradient banding */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: url("/assets/ultra_fine_256.png") repeat;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 9999;
+}
+
 /* Typography */
 h1, h2, h3 {
   font-weight: 600;

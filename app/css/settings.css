@@ -31,6 +31,10 @@ body.toast-mode .settings {
   flex-direction: column;
 }
 
+.settings__right .section__title {
+  align-self: flex-end;
+}
+
 /* Sections */
 .section {
   display: flex;

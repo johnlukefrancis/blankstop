@@ -30,3 +30,4 @@ scripts/zip/output/*
 *.njsproj
 *.sln
 *.sw?
+docs/screenshots/

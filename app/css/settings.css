@@ -129,6 +129,7 @@ body.toast-mode .settings {
 .toggle input:checked + .toggle__switch {
   background: var(--accent);
   border-color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
 }
 
 .toggle input:checked + .toggle__switch::after {

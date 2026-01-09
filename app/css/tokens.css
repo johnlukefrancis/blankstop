@@ -18,7 +18,8 @@
   --text-muted: #6e7681;
 
   /* Colors - Accent */
-  --accent: #58a6ff;
+  --accent: #5b8dd9;
+  --accent-glow: rgba(91, 141, 217, 0.4);
   --accent-success: #3fb950;
   --accent-success-soft: rgba(63, 185, 80, 0.15);
   --accent-warning: #d29922;

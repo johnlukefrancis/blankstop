@@ -22,6 +22,7 @@ pub fn sanitize_js(text: &str) -> Option<String> {
     parse::parse_js(&candidate).ok().map(|_| candidate)
 }
 
+#[cfg_attr(not(test), allow(dead_code))]
 pub fn is_valid_js(text: &str) -> bool {
     parse::parse_js(text).is_ok()
 }

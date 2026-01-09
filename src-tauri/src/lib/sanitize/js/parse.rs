@@ -13,7 +13,7 @@ pub fn parse_js(text: &str) -> Result<(), ()> {
 }
 
 fn parse_module(cm: Lrc<SourceMap>, text: &str) -> Result<(), ()> {
-    let fm = cm.new_source_file(
+    let _fm = cm.new_source_file(
         FileName::Custom("clipboard.js".to_string()).into(),
         text.to_string(),
     );
@@ -32,7 +32,7 @@ fn parse_module(cm: Lrc<SourceMap>, text: &str) -> Result<(), ()> {
 }
 
 fn parse_script(cm: Lrc<SourceMap>, text: &str) -> Result<(), ()> {
-    let fm = cm.new_source_file(
+    let _fm = cm.new_source_file(
         FileName::Custom("clipboard.js".to_string()).into(),
         text.to_string(),
     );

@@ -136,6 +136,51 @@
       "group": "build"
     },
     {
+      "label": "Tauri: build installer (Windows)",
+      "type": "process",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "wsl.exe -d Ubuntu -- bash -lc 'cd /home/johnf/code/blankstop && ./scripts/sync_to_windows.sh'; cd C:\\\\code\\\\blankstop; pnpm tauri build"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "showReuseMessage": false
+      },
+      "group": "build"
+    },
+    {
+      "label": "Installer: run latest (Windows)",
+      "type": "process",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$installer = Get-ChildItem -Path \"C:\\\\code\\\\blankstop\\\\src-tauri\\\\target\\\\release\\\\bundle\\\\nsis\\\\*-setup.exe\" | Sort-Object LastWriteTime -Descending | Select-Object -First 1; if (-not $installer) { Write-Error \"No NSIS installer found. Run 'Tauri: build installer (Windows)' first.\"; exit 1 } ; Start-Process $installer.FullName"
+      ],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "showReuseMessage": false
+      },
+      "group": "build"
+    },
+    {
+      "label": "Installer: build + run (Windows)",
+      "dependsOn": [
+        "Tauri: build installer (Windows)",
+        "Installer: run latest (Windows)"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build"
+    },
+    {
       "label": "Zip: bundles",
       "type": "shell",
       "command": "node scripts/zip/zip_blankstop_bundles.mjs",

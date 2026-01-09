@@ -3,6 +3,11 @@
 Blankstop is a Windows-first tray app that watches clipboard updates from terminal
 apps and cleans up soft-wrapped text before you paste.
 
+## Install
+- GitHub Releases (placeholder until releases exist).
+- For local installers and packaging notes, see
+  `docs/release/windows_installer.md`.
+
 ## What it does
 - Runs in the system tray with no main window on launch.
 - Listens to clipboard changes using Win32 events (no polling).
@@ -70,6 +75,7 @@ See `docs/runbook/troubleshooting.md` for symptom → cause → where to inspect
 - `docs/architecture/system_overview.md`
 - `docs/architecture/sanitizer_pipeline.md`
 - `docs/architecture/windows_integration.md`
+- `docs/release/windows_installer.md`
 - `docs/runbook/troubleshooting.md`
 
 ## Security & privacy

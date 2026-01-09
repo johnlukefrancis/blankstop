@@ -34,6 +34,8 @@ const isToast = search.get("toast") === "1" || window.__blankstopToast === true;
 
 document.body.classList.toggle("toast-mode", isToast);
 document.body.classList.toggle("settings-mode", !isToast);
+document.documentElement.classList.toggle("toast-mode", isToast);
+document.documentElement.classList.toggle("settings-mode", !isToast);
 
 if (isToast) {
   import("../ui/toast");

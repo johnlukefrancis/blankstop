@@ -3,6 +3,16 @@
   color: #f5f7fa;
 }
 
+html.toast-mode {
+  background: transparent;
+  background-color: transparent;
+}
+
+html.toast-mode body {
+  background: transparent;
+  background-color: transparent;
+}
+
 body.toast-mode {
   margin: 0;
   background: transparent;

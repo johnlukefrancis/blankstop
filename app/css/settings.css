@@ -214,4 +214,5 @@ body.toast-mode .settings {
 .hint {
   font-size: var(--text-xs);
   color: var(--text-muted);
+  align-self: flex-end;
 }

@@ -1,6 +1,6 @@
 [package]
 name = "blankstop"
-version = "0.1.5"
+version = "0.1.7"
 description = "Tray clipboard sanitizer for terminal copy/paste on Windows"
 authors = ["you"]
 edition = "2021"
@@ -40,5 +40,6 @@ windows = { version = "0.58", features = [
   "Win32_System_Threading",
   "Win32_UI_WindowsAndMessaging"
 ] }
+
 
 

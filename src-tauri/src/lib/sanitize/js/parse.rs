@@ -20,7 +20,7 @@ fn parse_module(cm: Lrc<SourceMap>, text: &str) -> Result<(), ()> {
     let lexer = Lexer::new(
         Syntax::Es(Default::default()),
         Default::default(),
-        StringInput::from(&*fm),
+        StringInput::new(&fm, 0, 0),
         None,
     );
     let mut parser = Parser::new_from(lexer);
@@ -39,7 +39,7 @@ fn parse_script(cm: Lrc<SourceMap>, text: &str) -> Result<(), ()> {
     let lexer = Lexer::new(
         Syntax::Es(Default::default()),
         Default::default(),
-        StringInput::from(&*fm),
+        StringInput::new(&fm, 0, 0),
         None,
     );
     let mut parser = Parser::new_from(lexer);

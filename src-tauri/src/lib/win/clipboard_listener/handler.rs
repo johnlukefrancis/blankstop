@@ -63,6 +63,7 @@ pub fn handle_clipboard_update(app: &AppHandle, state: &SharedState, hwnd: HWND)
 
     let result = sanitize_text(&text);
     let toast_message = result.summary.toast_message();
+    let toast_with_source = format_sanitize_toast(&toast_message, source_exe.as_deref());
     {
         let mut guard = state.lock().expect("state mutex poisoned");
         set_debug_capture(&mut guard, &text, &toast_message);
@@ -94,7 +95,7 @@ pub fn handle_clipboard_update(app: &AppHandle, state: &SharedState, hwnd: HWND)
 
     emit_ui_state(app, state);
     if config.toast_enabled {
-        show_toast(app, toast_message);
+        show_toast(app, toast_with_source);
     }
 }
 
@@ -156,4 +157,11 @@ pub fn sanitize_clipboard_now(app: &AppHandle, state: &SharedState) -> bool {
 
     emit_ui_state(app, state);
     true
+}
+
+fn format_sanitize_toast(message: &str, source_exe: Option<&str>) -> String {
+    match source_exe {
+        Some(exe) => format!("{} ({})", message, exe),
+        None => message.to_string(),
+    }
 }

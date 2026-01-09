@@ -251,3 +251,18 @@ fn does_not_join_property_start_with_leading_bidi_mark() {
         )
     );
 }
+
+#[test]
+fn js_reflow_preserves_string_literals_without_spaces() {
+    let input = "const url = import('/a/b/c/\n   d.js');\n";
+    let result = sanitize_text(input);
+    assert!(result.output.contains("import('/a/b/c/d.js')"));
+    assert!(js::is_valid_js(&result.output));
+}
+
+#[test]
+fn js_reflow_joins_return_without_extra_spaces() {
+    let input = "return\n  fallback\n";
+    let result = sanitize_text(input);
+    assert_eq!(result.output, "return fallback");
+}

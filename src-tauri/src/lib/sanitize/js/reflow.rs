@@ -12,20 +12,26 @@ pub fn reflow_js(input: &str) -> String {
     let mut out = String::with_capacity(input.len());
     let mut chars = input.chars().peekable();
     let mut mode = Mode::Normal;
-    let mut prev_was_space = false;
     let mut prev_non_ws: Option<char> = None;
     let mut line_has_content = false;
+    let mut pending_skip_ws = false;
+    let mut pending_string_indent: Option<StringIndentState> = None;
 
     while let Some(ch) = chars.next() {
         match mode {
             Mode::Normal => {
+                if pending_skip_ws {
+                    if ch == ' ' || ch == '\t' {
+                        continue;
+                    }
+                    pending_skip_ws = false;
+                }
                 if ch == '/' {
                     if let Some('/') = chars.peek().copied() {
                         out.push('/');
                         out.push('/');
                         chars.next();
                         mode = Mode::LineComment;
-                        prev_was_space = false;
                         continue;
                     }
                     if let Some('*') = chars.peek().copied() {
@@ -33,32 +39,27 @@ pub fn reflow_js(input: &str) -> String {
                         out.push('*');
                         chars.next();
                         mode = Mode::BlockComment;
-                        prev_was_space = false;
                         continue;
                     }
                 }
                 if ch == '\'' {
                     out.push(ch);
                     mode = Mode::SingleQuote;
-                    prev_was_space = false;
                     continue;
                 }
                 if ch == '"' {
                     out.push(ch);
                     mode = Mode::DoubleQuote;
-                    prev_was_space = false;
                     continue;
                 }
                 if ch == '`' {
                     out.push(ch);
                     mode = Mode::Template;
-                    prev_was_space = false;
                     continue;
                 }
                 if ch == '\n' {
                     if !line_has_content {
                         out.push('\n');
-                        prev_was_space = true;
                         prev_non_ws = None;
                         continue;
                     }
@@ -70,20 +71,17 @@ pub fn reflow_js(input: &str) -> String {
                         next_is_line_comment,
                         next_line_trim.as_deref(),
                     ) {
-                        if !prev_was_space {
-                            out.push(' ');
-                            prev_was_space = true;
-                        }
+                        trim_trailing_inline_ws(&mut out);
+                        out.push(' ');
+                        pending_skip_ws = true;
                     } else {
                         out.push('\n');
-                        prev_was_space = true;
                         prev_non_ws = None;
                         line_has_content = false;
                     }
                     continue;
                 }
                 out.push(ch);
-                prev_was_space = ch.is_whitespace();
                 if !ch.is_whitespace() {
                     prev_non_ws = Some(ch);
                     line_has_content = true;
@@ -93,7 +91,6 @@ pub fn reflow_js(input: &str) -> String {
                 out.push(ch);
                 if ch == '\n' {
                     mode = Mode::Normal;
-                    prev_was_space = true;
                     prev_non_ws = None;
                     line_has_content = false;
                 }
@@ -105,14 +102,39 @@ pub fn reflow_js(input: &str) -> String {
                         out.push('/');
                         chars.next();
                         mode = Mode::Normal;
-                        prev_was_space = false;
                     }
                 }
             }
             Mode::SingleQuote => {
+                if let Some(state) = pending_string_indent.as_mut() {
+                    if ch == '\n' {
+                        continue;
+                    }
+                    if ch == '\t' {
+                        state.drop_all = true;
+                        continue;
+                    }
+                    if ch == ' ' {
+                        if state.drop_all {
+                            continue;
+                        }
+                        let next = chars.peek().copied();
+                        if matches!(next, Some(' ' | '\t' | '\n')) {
+                            state.drop_all = true;
+                            continue;
+                        }
+                        out.push(' ');
+                        pending_string_indent = None;
+                        continue;
+                    }
+                    if ch.is_whitespace() {
+                        state.drop_all = true;
+                        continue;
+                    }
+                    pending_string_indent = None;
+                }
                 if ch == '\n' {
-                    out.push(' ');
-                    prev_was_space = true;
+                    pending_string_indent = Some(StringIndentState { drop_all: false });
                     continue;
                 }
                 out.push(ch);
@@ -125,14 +147,39 @@ pub fn reflow_js(input: &str) -> String {
                 }
                 if ch == '\'' {
                     mode = Mode::Normal;
-                    prev_was_space = false;
                     continue;
                 }
             }
             Mode::DoubleQuote => {
+                if let Some(state) = pending_string_indent.as_mut() {
+                    if ch == '\n' {
+                        continue;
+                    }
+                    if ch == '\t' {
+                        state.drop_all = true;
+                        continue;
+                    }
+                    if ch == ' ' {
+                        if state.drop_all {
+                            continue;
+                        }
+                        let next = chars.peek().copied();
+                        if matches!(next, Some(' ' | '\t' | '\n')) {
+                            state.drop_all = true;
+                            continue;
+                        }
+                        out.push(' ');
+                        pending_string_indent = None;
+                        continue;
+                    }
+                    if ch.is_whitespace() {
+                        state.drop_all = true;
+                        continue;
+                    }
+                    pending_string_indent = None;
+                }
                 if ch == '\n' {
-                    out.push(' ');
-                    prev_was_space = true;
+                    pending_string_indent = Some(StringIndentState { drop_all: false });
                     continue;
                 }
                 out.push(ch);
@@ -145,7 +192,6 @@ pub fn reflow_js(input: &str) -> String {
                 }
                 if ch == '"' {
                     mode = Mode::Normal;
-                    prev_was_space = false;
                     continue;
                 }
             }
@@ -160,11 +206,9 @@ pub fn reflow_js(input: &str) -> String {
                 }
                 if ch == '`' {
                     mode = Mode::Normal;
-                    prev_was_space = false;
                     continue;
                 }
                 if ch == '\n' {
-                    prev_was_space = true;
                 }
             }
         }
@@ -186,6 +230,17 @@ fn peek_next_non_ws(chars: &std::iter::Peekable<std::str::Chars<'_>>) -> (Option
         return (Some(ch), false);
     }
     (None, false)
+}
+
+fn trim_trailing_inline_ws(out: &mut String) {
+    while matches!(out.chars().last(), Some(ch) if ch.is_whitespace() && ch != '\n') {
+        out.pop();
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+struct StringIndentState {
+    drop_all: bool,
 }
 
 fn should_join(

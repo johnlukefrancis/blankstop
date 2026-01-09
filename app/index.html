@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/css/base.css" />
     <link rel="stylesheet" href="/css/settings.css" />
     <link rel="stylesheet" href="/css/toast.css" />
+    <link rel="stylesheet" href="/css/tray_menu.css" />
     <script type="module" src="/src/config/settings.ts" defer></script>
   </head>
   <body>
@@ -68,6 +69,19 @@
 
     <div id="toast-root" class="toast">
       <div id="message" class="message">✓ Clipboard sanitized</div>
+    </div>
+
+    <div id="tray-menu-root" class="tray-menu">
+      <label class="tray-menu__item tray-menu__item--toggle">
+        <input id="menu-enabled" type="checkbox" />
+        <span class="tray-menu__toggle"></span>
+        <span>Enabled</span>
+      </label>
+      <button id="menu-pause" class="tray-menu__item">Pause 5 min</button>
+      <button id="menu-settings" class="tray-menu__item">Settings...</button>
+      <button id="menu-sanitize" class="tray-menu__item">Sanitize clipboard now</button>
+      <hr class="tray-menu__separator" />
+      <button id="menu-quit" class="tray-menu__item tray-menu__item--danger">Quit</button>
     </div>
   </body>
 </html>

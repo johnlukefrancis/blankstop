@@ -43,14 +43,19 @@ const DEFAULT_ALLOWLIST = [
 
 const search = new URLSearchParams(window.location.search);
 const isToast = search.get("toast") === "1" || window.__blankstopToast === true;
+const isTrayMenu = window.__blankstopTrayMenu === true;
 
 document.body.classList.toggle("toast-mode", isToast);
-document.body.classList.toggle("settings-mode", !isToast);
+document.body.classList.toggle("tray-menu-mode", isTrayMenu);
+document.body.classList.toggle("settings-mode", !isToast && !isTrayMenu);
 document.documentElement.classList.toggle("toast-mode", isToast);
-document.documentElement.classList.toggle("settings-mode", !isToast);
+document.documentElement.classList.toggle("tray-menu-mode", isTrayMenu);
+document.documentElement.classList.toggle("settings-mode", !isToast && !isTrayMenu);
 
 if (isToast) {
   import("../ui/toast");
+} else if (isTrayMenu) {
+  import("../ui/tray_menu");
 } else {
   initSettings();
 }

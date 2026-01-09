@@ -25,6 +25,7 @@ pub fn run() {
             app.manage(shared_state.clone());
 
             let _ = toast::ensure_toast_window(app_handle);
+            let _ = tray::menu_window::ensure_menu_window(app_handle);
             tray::init_tray(app_handle, shared_state.clone())?;
 
             if let Some(window) = app_handle.get_webview_window("main") {
@@ -40,7 +41,10 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::get_ui_state,
-            commands::update_config
+            commands::update_config,
+            commands::tray_menu_action,
+            commands::hide_tray_menu,
+            commands::get_tray_menu_state
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

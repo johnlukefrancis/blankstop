@@ -108,7 +108,7 @@ fn toggle_enabled(app: &AppHandle, state: &SharedState, show_toast_notification:
     if save_config(app, &config).is_ok() {
         sync_menu(app, state);
         emit_ui_state(app, state);
-        if show_toast_notification {
+        if show_toast_notification && config.status_toast_enabled {
             let message = format_enabled_toast(config.enabled, source_exe.as_deref());
             show_toast(app, message);
         }

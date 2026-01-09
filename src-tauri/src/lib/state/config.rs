@@ -6,6 +6,7 @@ use std::collections::HashSet;
 pub struct Config {
     pub enabled: bool,
     pub toast_enabled: bool,
+    pub status_toast_enabled: bool,
     pub only_allowlisted: bool,
     pub allowlist: Vec<String>,
     pub run_on_startup: bool,
@@ -16,6 +17,7 @@ impl Default for Config {
         Self {
             enabled: true,
             toast_enabled: true,
+            status_toast_enabled: false,
             only_allowlisted: true,
             allowlist: vec![
                 "windowsterminal.exe".to_string(),

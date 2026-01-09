@@ -9,6 +9,7 @@ import {
 type Config = {
   enabled: boolean;
   toast_enabled: boolean;
+  status_toast_enabled: boolean;
   only_allowlisted: boolean;
   allowlist: string[];
   run_on_startup: boolean;
@@ -44,6 +45,7 @@ function initSettings() {
   const elements = {
     enabled: document.getElementById("enabled") as HTMLInputElement,
     toast: document.getElementById("toast_enabled") as HTMLInputElement,
+    statusToast: document.getElementById("status_toast_enabled") as HTMLInputElement,
     onlyAllowlisted: document.getElementById("only_allowlisted") as HTMLInputElement,
     runOnStartup: document.getElementById("run_on_startup") as HTMLInputElement,
     allowlist: document.getElementById("allowlist") as HTMLTextAreaElement,
@@ -73,6 +75,7 @@ function initSettings() {
     currentState = state;
     elements.enabled.checked = state.config.enabled;
     elements.toast.checked = state.config.toast_enabled;
+    elements.statusToast.checked = state.config.status_toast_enabled;
     elements.onlyAllowlisted.checked = state.config.only_allowlisted;
     elements.runOnStartup.checked = state.config.run_on_startup;
     elements.allowlist.value = state.config.allowlist.join("\n");
@@ -116,6 +119,7 @@ function initSettings() {
     const config: Config = {
       enabled: elements.enabled.checked,
       toast_enabled: elements.toast.checked,
+      status_toast_enabled: elements.statusToast.checked,
       only_allowlisted: elements.onlyAllowlisted.checked,
       allowlist,
       run_on_startup: elements.runOnStartup.checked,
@@ -142,6 +146,7 @@ function initSettings() {
   function setupListeners() {
     elements.enabled.addEventListener("change", saveConfig);
     elements.toast.addEventListener("change", saveConfig);
+    elements.statusToast.addEventListener("change", saveConfig);
     elements.onlyAllowlisted.addEventListener("change", saveConfig);
     elements.allowlist.addEventListener("change", saveConfig);
     elements.runOnStartup.addEventListener("change", async () => {

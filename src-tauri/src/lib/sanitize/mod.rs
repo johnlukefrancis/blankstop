@@ -12,7 +12,7 @@ mod unwarp;
 use serde::Serialize;
 
 use lines::{build_line_meta, trim_blank_edges};
-use clean::clean_text;
+use clean::{clean_text, CleanResult};
 use profile::estimate_wrap_profile;
 use unwarp::unwarp_lines;
 use wrap::{join_wrapped_single_line, should_rule_a};
@@ -62,6 +62,16 @@ pub fn sanitize_text(input: &str) -> SanitizeResult {
             },
         };
     }
+    sanitize_text_text_mode_from_clean(clean)
+}
+
+#[cfg_attr(not(test), allow(dead_code))]
+pub(crate) fn sanitize_text_text_mode(input: &str) -> SanitizeResult {
+    let clean = clean_text(input);
+    sanitize_text_text_mode_from_clean(clean)
+}
+
+fn sanitize_text_text_mode_from_clean(clean: CleanResult) -> SanitizeResult {
     let (mut lines, trimmed_trailing_ws) = build_line_meta(&clean.text);
     let trimmed_blank_lines = trim_blank_edges(&mut lines);
 

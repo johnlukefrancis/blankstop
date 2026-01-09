@@ -20,18 +20,18 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .setup(|app| {
             let app_handle = app.handle();
-            let config = state::load_config(&app_handle);
+            let config = state::load_config(app_handle);
             let shared_state = state::new_shared_state(config);
             app.manage(shared_state.clone());
 
-            let _ = toast::ensure_toast_window(&app_handle);
-            tray::init_tray(&app_handle, shared_state.clone())?;
+            let _ = toast::ensure_toast_window(app_handle);
+            tray::init_tray(app_handle, shared_state.clone())?;
 
             if let Some(window) = app_handle.get_webview_window("main") {
                 let _ = window.hide();
             }
 
-            register_shortcut(&app_handle, shared_state.clone())?;
+            register_shortcut(app_handle, shared_state.clone())?;
 
             #[cfg(target_os = "windows")]
             win::clipboard_listener::start_listener(app_handle.clone(), shared_state);

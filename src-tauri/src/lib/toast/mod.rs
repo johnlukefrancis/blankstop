@@ -55,8 +55,8 @@ fn position_toast(window: &tauri::WebviewWindow) -> tauri::Result<()> {
     if let Some(monitor) = window.current_monitor()? {
         let work_area = monitor.work_area();
         let margin = 18i32;
-        let x = work_area.position.x + work_area.size.width as i32 - size.width as i32 - margin;
-        let y = work_area.position.y + work_area.size.height as i32 - size.height as i32 - margin;
+        let x = work_area.position.x + work_area.size.width as i32 - size.width - margin;
+        let y = work_area.position.y + work_area.size.height as i32 - size.height - margin;
         window.set_position(PhysicalPosition::new(x, y))?;
     }
     Ok(())

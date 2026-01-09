@@ -1,10 +1,10 @@
-use super::sanitize_text;
+use super::{sanitize_text, sanitize_text_text_mode};
 use super::js;
 
 #[test]
 fn wrapped_commit_subject_example() {
     let input = "🟦 improve(docs): document HUD GPU clear state restore\n  requirement\n";
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(
         result.output,
         "🟦 improve(docs): document HUD GPU clear state restore requirement"
@@ -14,14 +14,14 @@ fn wrapped_commit_subject_example() {
 #[test]
 fn multiline_code_preserved() {
     let input = "const a = 1;\nconst b = 2;\n";
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(result.output, "const a = 1;\nconst b = 2;");
 }
 
 #[test]
 fn soft_wrap_join_simulation() {
     let input = "checksum: Array.from({ length: 24 }, (_, i) => ((i * 7 + 13) % 97)).jo\nin(',')\n";
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(
         result.output,
         "checksum: Array.from({ length: 24 }, (_, i) => ((i * 7 + 13) % 97)).join(',')"
@@ -31,7 +31,7 @@ fn soft_wrap_join_simulation() {
 #[test]
 fn does_not_flatten_short_code_block() {
     let input = "if (foo) {\n  bar();\n}\n";
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(result.output, "if (foo) {\n  bar();\n}");
 }
 
@@ -44,7 +44,7 @@ fn unwraps_single_wrapped_line_inside_large_snippet() {
         "in(',');\n",
         "return { label, joined, values };\n"
     );
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(
         result.output,
         concat!(
@@ -66,7 +66,7 @@ fn unwraps_multiple_wraps_without_poisoning_width() {
         "  [\"used\",\"total\",\"limit\"]) : null, null),\n",
         "};\n"
     );
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(
         result.output,
         concat!(
@@ -81,14 +81,14 @@ fn unwraps_multiple_wraps_without_poisoning_width() {
 #[test]
 fn does_not_join_return_fallback_identifier() {
     let input = "return\nfallback\n";
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(result.output, "return\nfallback");
 }
 
 #[test]
 fn unwraps_return_with_indented_fallback() {
     let input = "const result = computeSomethingVerbose(return\n  fallback);\n";
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(
         result.output,
         "const result = computeSomethingVerbose(return fallback);"
@@ -98,7 +98,7 @@ fn unwraps_return_with_indented_fallback() {
 #[test]
 fn unwraps_pick_screen_with_bracket() {
     let input = "const metrics = pick(screen,\n  [\"width\"]);\n";
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(
         result.output,
         "const metrics = pick(screen, [\"width\"]);"
@@ -113,7 +113,7 @@ fn unwraps_emoji_punctuation_wraps() {
         "const detail = \"emoji 🚀 and punctuation: [one,\n",
         "  two, three]\";\n"
     );
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(
         result.output,
         concat!(
@@ -132,7 +132,7 @@ fn does_not_join_object_properties_at_depth0() {
         "  userAgent: \"ua\",\n",
         "};\n"
     );
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(
         result.output,
         concat!(
@@ -154,7 +154,7 @@ fn does_not_join_dedented_property_start() {
         "  enabled: true,\n",
         "}\n"
     );
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(
         result.output,
         concat!(
@@ -170,7 +170,7 @@ fn does_not_join_dedented_property_start() {
 #[test]
 fn does_not_join_property_start_even_if_indent_differs() {
     let input = "  screen: true,\ntrianglerain_globals: {}";
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(
         result.output,
         "  screen: true,\ntrianglerain_globals: {}"
@@ -180,7 +180,7 @@ fn does_not_join_property_start_even_if_indent_differs() {
 #[test]
 fn does_not_join_semicolon_boundary_with_zero_width_space() {
     let input = "const a = 1;\u{200B}\nconst b = 2;\n";
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(result.output, "const a = 1;\nconst b = 2;");
 }
 
@@ -192,7 +192,7 @@ fn does_not_join_property_start_with_leading_zero_width_space() {
         "}\n",
         "\u{200B}trianglerain_globals: {}\n"
     );
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(
         result.output,
         concat!(
@@ -207,7 +207,7 @@ fn does_not_join_property_start_with_leading_zero_width_space() {
 #[test]
 fn strips_leading_bullet_prefix_for_codeish_lines() {
     let input = "• const a = 1;\n";
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(result.output, "const a = 1;");
 }
 
@@ -215,7 +215,7 @@ fn strips_leading_bullet_prefix_for_codeish_lines() {
 fn js_cli_wrapped_fixture_validates_and_preserves_properties() {
     let input = include_str!("fixtures/cli_wrapped_report.txt");
     let result = sanitize_text(input);
-
+    assert!(result.summary.js_validated);
     assert!(
         result
             .output
@@ -240,7 +240,7 @@ fn does_not_join_property_start_with_leading_bidi_mark() {
         "}\n",
         "\u{200E}trianglerain_globals: {}\n"
     );
-    let result = sanitize_text(input);
+    let result = sanitize_text_text_mode(input);
     assert_eq!(
         result.output,
         concat!(
@@ -257,12 +257,32 @@ fn js_reflow_preserves_string_literals_without_spaces() {
     let input = "const url = import('/a/b/c/\n   d.js');\n";
     let result = sanitize_text(input);
     assert!(result.output.contains("import('/a/b/c/d.js')"));
+    assert!(result.summary.js_validated);
+    assert!(js::is_valid_js(&result.output));
+}
+
+#[test]
+fn js_reflow_preserves_identifier_splits() {
+    let input = "const list = [1, 2, 3];\nconst joined = list.jo\nin(',');\n";
+    let result = sanitize_text(input);
+    assert!(result.output.contains("list.join(',')"));
+    assert!(result.summary.js_validated);
     assert!(js::is_valid_js(&result.output));
 }
 
 #[test]
 fn js_reflow_joins_return_without_extra_spaces() {
+    let input = "function f() { return\n  fallback }\n";
+    let result = sanitize_text(input);
+    assert!(result.output.contains("return fallback"));
+    assert!(!result.output.contains("return   fallback"));
+    assert!(result.summary.js_validated);
+}
+
+#[test]
+fn js_like_but_not_parseable_returns_normalized_input() {
     let input = "return\n  fallback\n";
     let result = sanitize_text(input);
-    assert_eq!(result.output, "return fallback");
+    assert_eq!(result.output, "return\n  fallback\n");
+    assert!(!result.summary.js_validated);
 }

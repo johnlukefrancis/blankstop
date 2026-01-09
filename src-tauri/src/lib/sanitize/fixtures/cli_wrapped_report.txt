@@ -1,10 +1,9 @@
 (function () {
   const report = {
     screen: safe(() => pick(screen,
-    ["width","height","availWidth","availHeight"], null),
+    ["width","height","availWidth","availHeight"], null), null),
     platform: safe(() =>
-      navigator.platform - pick(screen,
-      ["width","height","availWidth","availHeight"], null),
+      navigator.platform, null),
     fallback: safe(() => value ? pick(data,
     ["used","total","limit"]) : null, null),
     trianglerain_globals: {

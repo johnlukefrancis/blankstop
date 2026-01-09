@@ -1,3 +1,5 @@
+use super::super::heuristics::is_identifier_split;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Mode {
     Normal,
@@ -65,6 +67,11 @@ pub fn reflow_js(input: &str) -> String {
                     }
                     let (next_non_ws, next_is_line_comment) = peek_next_non_ws(&chars);
                     let next_line_trim = peek_next_line_trim(&chars);
+                    let prev_line_trim = trim_current_line(&out);
+                    let identifier_split = next_line_trim
+                        .as_deref()
+                        .map(|next_trim| is_identifier_split(prev_line_trim, next_trim))
+                        .unwrap_or(false);
                     if should_join(
                         prev_non_ws,
                         next_non_ws,
@@ -72,7 +79,9 @@ pub fn reflow_js(input: &str) -> String {
                         next_line_trim.as_deref(),
                     ) {
                         trim_trailing_inline_ws(&mut out);
-                        out.push(' ');
+                        if !identifier_split {
+                            out.push(' ');
+                        }
                         pending_skip_ws = true;
                     } else {
                         out.push('\n');
@@ -236,6 +245,11 @@ fn trim_trailing_inline_ws(out: &mut String) {
     while matches!(out.chars().last(), Some(ch) if ch.is_whitespace() && ch != '\n') {
         out.pop();
     }
+}
+
+fn trim_current_line(out: &str) -> &str {
+    let start = out.rfind('\n').map(|pos| pos + 1).unwrap_or(0);
+    out[start..].trim_end()
 }
 
 #[derive(Clone, Copy, Debug)]

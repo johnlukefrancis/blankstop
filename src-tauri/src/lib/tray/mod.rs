@@ -6,7 +6,13 @@ use tauri::{AppHandle, Manager, WebviewUrl, Wry};
 
 use crate::state::{emit_ui_state, is_paused, save_config, Config, SharedState};
 use crate::toast::show_toast;
+#[cfg(target_os = "windows")]
 use crate::win::clipboard_listener::sanitize_clipboard_now;
+
+#[cfg(not(target_os = "windows"))]
+fn sanitize_clipboard_now(_app: &AppHandle, _state: &SharedState) -> bool {
+    false
+}
 
 pub fn init_tray(app: &AppHandle, state: SharedState) -> tauri::Result<()> {
     let menu = build_menu(app, &state)?;

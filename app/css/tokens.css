@@ -1,0 +1,68 @@
+/* BlankStop Design Tokens - Windows 11 Glassmorphic Dark Theme */
+
+:root {
+  /* Colors - Surface layers */
+  --bg-base: #0d1117;
+  --bg-surface: rgba(22, 27, 34, 0.85);
+  --bg-elevated: rgba(33, 38, 45, 0.9);
+  --bg-input: rgba(13, 17, 23, 0.8);
+
+  /* Colors - Borders */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-default: rgba(255, 255, 255, 0.12);
+  --border-focus: rgba(88, 166, 255, 0.5);
+
+  /* Colors - Text */
+  --text-primary: #f0f3f6;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+
+  /* Colors - Accent */
+  --accent: #58a6ff;
+  --accent-success: #3fb950;
+  --accent-success-soft: rgba(63, 185, 80, 0.15);
+  --accent-warning: #d29922;
+  --accent-disabled: #ff7b72;
+  --accent-disabled-soft: rgba(255, 123, 114, 0.15);
+
+  /* Typography - Font stacks */
+  --font-sans: "Segoe UI Variable", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: "Cascadia Code", "Cascadia Mono", "Consolas", "SF Mono", monospace;
+
+  /* Typography - Scale (1.2 ratio) */
+  --text-xs: 0.6875rem;   /* 11px */
+  --text-sm: 0.8125rem;   /* 13px */
+  --text-base: 1rem;      /* 16px */
+  --text-lg: 1.1875rem;   /* 19px */
+  --text-xl: 1.4375rem;   /* 23px */
+
+  /* Spacing (4px base) */
+  --space-1: 0.25rem;     /* 4px */
+  --space-2: 0.5rem;      /* 8px */
+  --space-3: 0.75rem;     /* 12px */
+  --space-4: 1rem;        /* 16px */
+  --space-5: 1.25rem;     /* 20px */
+  --space-6: 1.5rem;      /* 24px */
+  --space-8: 2rem;        /* 32px */
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
+
+  /* Transitions */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 120ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+
+  /* Layout */
+  --sidebar-width: 260px;
+}

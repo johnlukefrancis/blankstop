@@ -2,83 +2,93 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="/css/app.css" />
-    <link rel="stylesheet" href="/css/toast.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Blankstop Settings</title>
+    <title>BlankStop Settings</title>
+    <link rel="stylesheet" href="/css/tokens.css" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/settings.css" />
+    <link rel="stylesheet" href="/css/toast.css" />
     <script type="module" src="/src/config/settings.ts" defer></script>
   </head>
   <body>
-    <main class="app">
-      <header class="header">
-        <div>
-          <h1>Blankstop</h1>
-          <p class="subtitle">Clipboard sanitizer for terminal copy and paste.</p>
-        </div>
-        <div class="status" id="status-pill">Enabled</div>
+    <main class="settings">
+      <header class="settings__header">
+        <h1 class="settings__brand">BlankStop</h1>
+        <div class="status-pill" id="status-pill">Enabled</div>
       </header>
 
-      <section class="card">
-        <h2>Behavior</h2>
-        <div class="toggle-row">
-          <label class="toggle">
-            <input id="enabled" type="checkbox" />
-            <span>Enabled</span>
-          </label>
-          <label class="toggle">
-            <input id="toast_enabled" type="checkbox" />
-            <span>Toast notifications</span>
-          </label>
-          <label class="toggle">
-            <input id="status_toast_enabled" type="checkbox" />
-            <span>Status change toasts</span>
-          </label>
-          <label class="toggle">
-            <input id="only_allowlisted" type="checkbox" />
-            <span>Only sanitize allowlisted apps</span>
-          </label>
-          <label class="toggle">
-            <input id="run_on_startup" type="checkbox" />
-            <span>Run on startup</span>
-          </label>
-        </div>
-      </section>
+      <div class="settings__body">
+        <aside class="panel">
+          <section class="section">
+            <h2 class="section__title">Status</h2>
+            <div class="status-info">
+              <div class="status-row">
+                <span class="status-label">Last source</span>
+                <span class="status-value" id="last-source">None</span>
+              </div>
+              <div class="status-row">
+                <span class="status-label">Last action</span>
+                <span class="status-value" id="last-action">Never</span>
+              </div>
+            </div>
+          </section>
 
-      <section class="card">
-        <h2>Allowlist</h2>
-        <p class="hint">One executable per line.</p>
-        <textarea id="allowlist" rows="7"></textarea>
-      </section>
+          <section class="section">
+            <h2 class="section__title">Behavior</h2>
+            <div class="toggle-group">
+              <label class="toggle">
+                <input id="enabled" type="checkbox" />
+                <span class="toggle__switch"></span>
+                <span class="toggle__label">Enabled</span>
+              </label>
+              <label class="toggle">
+                <input id="toast_enabled" type="checkbox" />
+                <span class="toggle__switch"></span>
+                <span class="toggle__label">Toast notifications</span>
+              </label>
+              <label class="toggle">
+                <input id="status_toast_enabled" type="checkbox" />
+                <span class="toggle__switch"></span>
+                <span class="toggle__label">Status change toasts</span>
+              </label>
+              <label class="toggle">
+                <input id="only_allowlisted" type="checkbox" />
+                <span class="toggle__switch"></span>
+                <span class="toggle__label">Only allowlisted apps</span>
+              </label>
+              <label class="toggle">
+                <input id="run_on_startup" type="checkbox" />
+                <span class="toggle__switch"></span>
+                <span class="toggle__label">Run on startup</span>
+              </label>
+            </div>
+          </section>
+        </aside>
 
-      <section class="card">
-        <h2>Recent activity</h2>
-        <div class="meta">
-          <span class="label">Last source</span>
-          <span id="last-source">None</span>
-        </div>
-        <div class="log" id="log"></div>
-      </section>
+        <div class="panel panel--main">
+          <section class="section">
+            <div class="section__header">
+              <h2 class="section__title">Allowlist</h2>
+              <button class="btn btn--ghost" id="reset-allowlist">Reset defaults</button>
+            </div>
+            <p class="hint">One executable per line</p>
+            <textarea
+              id="allowlist"
+              class="textarea"
+              placeholder="WindowsTerminal.exe&#10;Code.exe&#10;..."
+            ></textarea>
+          </section>
 
-      <section class="card">
-        <h2>Debug (last sanitize)</h2>
-        <p class="hint">Raw clipboard text and summary (truncated).</p>
-        <div class="meta">
-          <span class="label">Summary</span>
+          <section class="section" style="min-height: 0;">
+            <h2 class="section__title">Recent Activity</h2>
+            <div class="log-list scrollable" id="log"></div>
+          </section>
         </div>
-        <pre class="debug-text" id="debug-summary">None</pre>
-        <div class="meta">
-          <span class="label">Clipboard</span>
-        </div>
-        <pre class="debug-text" id="debug-clipboard">None</pre>
-        <div class="meta">
-          <span class="label">Clipboard (escaped)</span>
-        </div>
-        <pre class="debug-text" id="debug-clipboard-escaped">None</pre>
-      </section>
+      </div>
     </main>
 
     <div id="toast-root" class="toast">
-      <div class="title">Blankstop</div>
+      <div class="title">BlankStop</div>
       <div id="message" class="message">Sanitized clipboard</div>
     </div>
   </body>

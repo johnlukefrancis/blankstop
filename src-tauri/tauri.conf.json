@@ -14,9 +14,9 @@
     "windows": [
       {
         "label": "main",
-        "title": "Blankstop Settings",
-        "width": 560,
-        "height": 560,
+        "title": "BlankStop Settings",
+        "width": 800,
+        "height": 480,
         "resizable": false,
         "visible": false
       }

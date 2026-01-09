@@ -29,6 +29,18 @@ type UiState = {
   debug_last_summary: string | null;
 };
 
+const DEFAULT_ALLOWLIST = [
+  "WindowsTerminal.exe",
+  "wt.exe",
+  "Code.exe",
+  "conhost.exe",
+  "pwsh.exe",
+  "powershell.exe",
+  "cmd.exe",
+  "bash.exe",
+  "wsl.exe",
+];
+
 const search = new URLSearchParams(window.location.search);
 const isToast = search.get("toast") === "1" || window.__blankstopToast === true;
 
@@ -51,14 +63,11 @@ function initSettings() {
     onlyAllowlisted: document.getElementById("only_allowlisted") as HTMLInputElement,
     runOnStartup: document.getElementById("run_on_startup") as HTMLInputElement,
     allowlist: document.getElementById("allowlist") as HTMLTextAreaElement,
+    resetAllowlist: document.getElementById("reset-allowlist") as HTMLButtonElement,
     status: document.getElementById("status-pill") as HTMLDivElement,
     lastSource: document.getElementById("last-source") as HTMLSpanElement,
+    lastAction: document.getElementById("last-action") as HTMLSpanElement,
     log: document.getElementById("log") as HTMLDivElement,
-    debugSummary: document.getElementById("debug-summary") as HTMLPreElement,
-    debugClipboard: document.getElementById("debug-clipboard") as HTMLPreElement,
-    debugClipboardEscaped: document.getElementById(
-      "debug-clipboard-escaped",
-    ) as HTMLPreElement,
   };
 
   let currentState: UiState | null = null;
@@ -84,12 +93,14 @@ function initSettings() {
     elements.status.textContent = state.config.enabled ? "Enabled" : "Disabled";
     elements.status.classList.toggle("disabled", !state.config.enabled);
     elements.lastSource.textContent = state.last_source_exe ?? "None";
-    elements.debugSummary.textContent = state.debug_last_summary ?? "None";
-    const lastClipboard = state.debug_last_clipboard;
-    elements.debugClipboard.textContent = lastClipboard ?? "None";
-    elements.debugClipboardEscaped.textContent = lastClipboard
-      ? toVisibleDebug(lastClipboard)
-      : "None";
+
+    const lastEntry = state.log[0];
+    if (lastEntry) {
+      elements.lastAction.textContent = new Date(lastEntry.timestamp_ms).toLocaleTimeString();
+    } else {
+      elements.lastAction.textContent = "Never";
+    }
+
     renderLog(state.log);
     applying = false;
   }
@@ -97,15 +108,21 @@ function initSettings() {
   function renderLog(entries: LogEntry[]) {
     elements.log.innerHTML = "";
     if (!entries.length) {
-      elements.log.innerHTML = `<div class="log-entry"><span>No sanitized events yet.</span></div>`;
+      const empty = document.createElement("div");
+      empty.className = "log-empty";
+      empty.textContent = "No sanitized events yet.";
+      elements.log.appendChild(empty);
       return;
     }
     for (const entry of entries) {
       const time = new Date(entry.timestamp_ms).toLocaleTimeString();
-      const source = entry.source_exe ? ` from ${entry.source_exe}` : "";
+      const source = entry.source_exe ? `from ${entry.source_exe}` : "";
       const item = document.createElement("div");
       item.className = "log-entry";
-      item.innerHTML = `<strong>${entry.summary}</strong><span>${time}${source}</span>`;
+      item.innerHTML = `
+        <div class="log-entry__summary">${entry.summary}</div>
+        <div class="log-entry__meta">${time} ${source}</div>
+      `.trim();
       elements.log.appendChild(item);
     }
   }
@@ -145,12 +162,18 @@ function initSettings() {
     }
   }
 
+  function resetAllowlist() {
+    elements.allowlist.value = DEFAULT_ALLOWLIST.join("\n");
+    saveConfig();
+  }
+
   function setupListeners() {
     elements.enabled.addEventListener("change", saveConfig);
     elements.toast.addEventListener("change", saveConfig);
     elements.statusToast.addEventListener("change", saveConfig);
     elements.onlyAllowlisted.addEventListener("change", saveConfig);
     elements.allowlist.addEventListener("change", saveConfig);
+    elements.resetAllowlist.addEventListener("click", resetAllowlist);
     elements.runOnStartup.addEventListener("change", async () => {
       await syncAutostart(elements.runOnStartup.checked);
       await saveConfig();
@@ -163,57 +186,4 @@ function initSettings() {
 
   setupListeners();
   loadState();
-}
-
-function toVisibleDebug(input: string): string {
-  let out = "";
-  for (const ch of input) {
-    if (ch === "\r") {
-      out += "\\r";
-      continue;
-    }
-    if (ch === "\n") {
-      out += "\\n\n";
-      continue;
-    }
-    if (isInvisibleOrControlChar(ch)) {
-      const code = ch.codePointAt(0);
-      if (code !== undefined) {
-        out += `\\u{${code.toString(16).toUpperCase().padStart(4, "0")}}`;
-      }
-      continue;
-    }
-    out += ch;
-  }
-  return out;
-}
-
-function isInvisibleOrControlChar(ch: string): boolean {
-  const code = ch.codePointAt(0);
-  if (code === undefined) {
-    return false;
-  }
-  if (code <= 0x1f || (code >= 0x7f && code <= 0x9f)) {
-    return code !== 0x09 && code !== 0x0a && code !== 0x0d;
-  }
-  return isInvisibleFormatCodepoint(code);
-}
-
-function isInvisibleFormatCodepoint(code: number): boolean {
-  if (code === 0x00ad || code === 0x061c || code === 0x180e || code === 0xfeff) {
-    return true;
-  }
-  if (code >= 0x200b && code <= 0x200f) {
-    return true;
-  }
-  if (code >= 0x202a && code <= 0x202e) {
-    return true;
-  }
-  if (code >= 0x2060 && code <= 0x2064) {
-    return true;
-  }
-  if (code >= 0x2066 && code <= 0x2069) {
-    return true;
-  }
-  return false;
 }

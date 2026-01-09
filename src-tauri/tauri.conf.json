@@ -41,6 +41,8 @@
       "nsis": {
         "installMode": "currentUser",
         "installerIcon": "icons/icon.ico",
+        "headerImage": "windows/installer_header.bmp",
+        "sidebarImage": "windows/installer_sidebar.bmp",
         "startMenuFolder": "Blankstop",
         "displayLanguageSelector": false
       },

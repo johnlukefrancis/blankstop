@@ -10,6 +10,23 @@ Config source: `src-tauri/tauri.conf.json`
 - `bundle.windows.webviewInstallMode` is `embedBootstrapper` to keep installs
   self-contained.
 
+## NSIS installer branding
+
+The installer uses custom branding images:
+- Header image: `src-tauri/windows/installer_header.bmp` (150x57)
+- Sidebar image: `src-tauri/windows/installer_sidebar.bmp` (164x314)
+
+These are referenced in `tauri.conf.json` under `bundle.windows.nsis.headerImage`
+and `bundle.windows.nsis.sidebarImage`.
+
+To regenerate from the app icon:
+```bash
+node scripts/generate_installer_bitmaps.mjs
+```
+
+The script creates dark-themed BMPs with the Blankstop icon. Run it after
+updating the source icon (`src-tauri/icons/icon.png`).
+
 Observed outputs in this repo:
 - There are no Windows release bundles checked in at this time.
 

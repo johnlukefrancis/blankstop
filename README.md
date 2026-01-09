@@ -17,9 +17,9 @@
 - **Private** — Local-only; no telemetry or network calls.
 
 <p align="center">
-  <img src="docs/screenshots/settings.png" alt="Settings window" width="340">
+  <img src="app/assets/settings.png" alt="Settings window" width="340">
   &nbsp;&nbsp;&nbsp;
-  <img src="docs/screenshots/installer.png" alt="Installer" width="340">
+  <img src="app/assets/installer.png" alt="Installer" width="340">
 </p>
 
 ## Download

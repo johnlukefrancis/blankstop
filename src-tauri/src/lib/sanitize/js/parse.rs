@@ -1,5 +1,5 @@
 use swc_common::{sync::Lrc, FileName, Globals, SourceMap, GLOBALS};
-use swc_ecma_parser::{EsConfig, Parser, StringInput, Syntax};
+use swc_ecma_parser::{lexer::Lexer, Parser, StringInput, Syntax};
 
 pub fn parse_js(text: &str) -> Result<(), ()> {
     let cm = Lrc::new(SourceMap::default());
@@ -13,15 +13,17 @@ pub fn parse_js(text: &str) -> Result<(), ()> {
 }
 
 fn parse_module(cm: Lrc<SourceMap>, text: &str) -> Result<(), ()> {
-    let fm = cm.new_source_file(FileName::Custom("clipboard.js".to_string()), text.to_string());
-    let mut parser = Parser::new(
-        Syntax::Es(EsConfig {
-            jsx: true,
-            ..Default::default()
-        }),
+    let fm = cm.new_source_file(
+        FileName::Custom("clipboard.js".to_string()).into(),
+        text.to_string(),
+    );
+    let lexer = Lexer::new(
+        Syntax::Es(Default::default()),
+        Default::default(),
         StringInput::from(&*fm),
         None,
     );
+    let mut parser = Parser::new_from(lexer);
     parser.parse_module().map_err(|_| ())?;
     if !parser.take_errors().is_empty() {
         return Err(());
@@ -30,15 +32,17 @@ fn parse_module(cm: Lrc<SourceMap>, text: &str) -> Result<(), ()> {
 }
 
 fn parse_script(cm: Lrc<SourceMap>, text: &str) -> Result<(), ()> {
-    let fm = cm.new_source_file(FileName::Custom("clipboard.js".to_string()), text.to_string());
-    let mut parser = Parser::new(
-        Syntax::Es(EsConfig {
-            jsx: true,
-            ..Default::default()
-        }),
+    let fm = cm.new_source_file(
+        FileName::Custom("clipboard.js".to_string()).into(),
+        text.to_string(),
+    );
+    let lexer = Lexer::new(
+        Syntax::Es(Default::default()),
+        Default::default(),
         StringInput::from(&*fm),
         None,
     );
+    let mut parser = Parser::new_from(lexer);
     parser.parse_script().map_err(|_| ())?;
     if !parser.take_errors().is_empty() {
         return Err(());

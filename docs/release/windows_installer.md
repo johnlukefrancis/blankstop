@@ -56,6 +56,12 @@ Only what this repo actually uses:
   (Apps & features / Settings → Apps), or via the bundle's uninstaller if it
   supplies one.
 
+## Release checklist
+1) Bump versions: `node scripts/scripts/bump_version.mjs <version>`
+2) Commit the version change.
+3) Tag: `v<version>` (example: `v0.1.2`) and push.
+4) Verify GitHub Actions release run and download the NSIS installer.
+
 ## Code signing
 - Code signing is not configured in this repo yet.
 - Placeholder: add signing config here once a certificate and signing pipeline

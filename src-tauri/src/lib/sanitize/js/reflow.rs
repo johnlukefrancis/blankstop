@@ -272,20 +272,17 @@ fn should_join(
     if matches!(next_non_ws, Some('}' | ']' | ')')) {
         return false;
     }
-    if next_line_trim
-        .map(|trim| looks_like_property_start(trim))
-        .unwrap_or(false)
-    {
+    if next_line_trim.map(looks_like_property_start).unwrap_or(false) {
         return false;
     }
     true
 }
 
 fn peek_next_line_trim(chars: &std::iter::Peekable<std::str::Chars<'_>>) -> Option<String> {
-    let mut iter = chars.clone();
+    let iter = chars.clone();
     let mut started = false;
     let mut out = String::new();
-    while let Some(ch) = iter.next() {
+    for ch in iter {
         if ch == '\n' {
             break;
         }
@@ -316,7 +313,7 @@ fn looks_like_property_start(text: &str) -> bool {
         Some('\"') | Some('\'') => {
             let quote = chars.next().unwrap();
             let mut prev_escape = false;
-            while let Some(ch) = chars.next() {
+            for ch in chars.by_ref() {
                 if prev_escape {
                     prev_escape = false;
                     continue;

@@ -28,8 +28,8 @@ pub fn is_identifier_split(prev: &str, next: &str) -> bool {
     if !is_ident_char(prev_last) || !is_ident_char(next_first) {
         return false;
     }
-    let mut chars = prev.chars().rev();
-    while let Some(ch) = chars.next() {
+    let chars = prev.chars().rev();
+    for ch in chars {
         if is_ident_char(ch) {
             continue;
         }

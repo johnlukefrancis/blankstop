@@ -76,16 +76,15 @@ pub fn decide_join(
         };
     }
 
-    if ends_with_keyword(prev_trim, "return") || ends_with_keyword(prev_trim, "throw") {
-        if looks_like_expression_start(next_trim_start)
-            && (next.leading_ws_count > 0
-                || matches!(next_trim_start.chars().next(), Some('(' | '[' | '{' | '"' | '\'' | '`')))
-        {
-            return JoinDecision {
-                join: true,
-                insert_space: true,
-            };
-        }
+    if (ends_with_keyword(prev_trim, "return") || ends_with_keyword(prev_trim, "throw"))
+        && looks_like_expression_start(next_trim_start)
+        && (next.leading_ws_count > 0
+            || matches!(next_trim_start.chars().next(), Some('(' | '[' | '{' | '"' | '\'' | '`')))
+    {
+        return JoinDecision {
+            join: true,
+            insert_space: true,
+        };
     }
 
     let mut score = 0i32;
@@ -179,7 +178,7 @@ fn looks_like_property_start(text: &str) -> bool {
         Some('"') | Some('\'') => {
             let quote = chars.next().unwrap();
             let mut prev_escape = false;
-            while let Some(ch) = chars.next() {
+            for ch in chars.by_ref() {
                 if prev_escape {
                     prev_escape = false;
                     continue;

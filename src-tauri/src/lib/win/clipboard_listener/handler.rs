@@ -96,3 +96,62 @@ pub fn handle_clipboard_update(app: &AppHandle, state: &SharedState, hwnd: HWND)
         show_toast(app, toast_message);
     }
 }
+
+pub fn sanitize_clipboard_now(app: &AppHandle, state: &SharedState) -> bool {
+    let (config, paused) = {
+        let guard = state.lock().expect("state mutex poisoned");
+        (guard.config.clone(), is_paused(&guard))
+    };
+    if paused {
+        return false;
+    }
+    let source_exe = clipboard_owner_exe_name();
+    if config.only_allowlisted {
+        let Some(ref exe) = source_exe else {
+            return false;
+        };
+        if !config.allowlist.contains(exe) {
+            return false;
+        }
+    }
+
+    let hwnd = HWND(std::ptr::null_mut());
+    let Some(text) = read_clipboard_text(hwnd) else {
+        return false;
+    };
+
+    let result = sanitize_text(&text);
+    let toast_message = result.summary.toast_message();
+    {
+        let mut guard = state.lock().expect("state mutex poisoned");
+        set_debug_capture(&mut guard, &text, &toast_message);
+    }
+
+    let normalized_input = text.replace("\r\n", "\n").replace('\r', "\n");
+    if result.output == normalized_input {
+        return false;
+    }
+
+    let output_for_clipboard = result.output.replace("\n", "\r\n");
+    if write_clipboard_text(hwnd, &output_for_clipboard).is_err() {
+        return false;
+    }
+
+    {
+        let mut guard = state.lock().expect("state mutex poisoned");
+        guard.last_written_hash = Some(hash_text(&output_for_clipboard));
+        guard.self_write_until = Some(Instant::now() + Duration::from_millis(SELF_WRITE_WINDOW_MS));
+        guard.last_source_exe = source_exe.clone();
+        push_log(
+            &mut guard,
+            LogEntry {
+                timestamp_ms: now_ms(),
+                source_exe,
+                summary: toast_message,
+            },
+        );
+    }
+
+    emit_ui_state(app, state);
+    true
+}

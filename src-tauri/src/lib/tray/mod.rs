@@ -6,6 +6,7 @@ use tauri::{AppHandle, Manager, WebviewUrl, Wry};
 
 use crate::state::{emit_ui_state, is_paused, save_config, Config, SharedState};
 use crate::toast::show_toast;
+use crate::win::clipboard_listener::sanitize_clipboard_now;
 
 pub fn init_tray(app: &AppHandle, state: SharedState) -> tauri::Result<()> {
     let menu = build_menu(app, &state)?;
@@ -17,7 +18,7 @@ pub fn init_tray(app: &AppHandle, state: SharedState) -> tauri::Result<()> {
             let id = event.id().as_ref();
             match id {
                 "enabled" => {
-                    toggle_enabled(app, &state, false);
+                    toggle_enabled(app, &state, true);
                 }
                 "pause_5" => {
                     set_paused(&state, Some(Duration::from_secs(300)));
@@ -31,6 +32,15 @@ pub fn init_tray(app: &AppHandle, state: SharedState) -> tauri::Result<()> {
                 }
                 "settings" => {
                     open_settings_window(app, &state);
+                }
+                "sanitize_now" => {
+                    let changed = sanitize_clipboard_now(app, &state);
+                    let message = if changed {
+                        "Sanitize now: changed"
+                    } else {
+                        "Sanitize now: no changes"
+                    };
+                    show_toast(app, message);
                 }
                 "test_toast" => {
                     show_toast(app, "Blankstop test toast");
@@ -70,6 +80,8 @@ fn build_menu(app: &AppHandle, state: &SharedState) -> tauri::Result<Menu<Wry>> 
     let pause_item = MenuItem::with_id(app, "pause_5", "Pause 5 min", true, None::<&str>)?;
     let resume_item = MenuItem::with_id(app, "resume", "Resume now", paused, None::<&str>)?;
     let settings_item = MenuItem::with_id(app, "settings", "Settings...", true, None::<&str>)?;
+    let sanitize_now_item =
+        MenuItem::with_id(app, "sanitize_now", "Sanitize clipboard now", true, None::<&str>)?;
     let test_toast_item = MenuItem::with_id(app, "test_toast", "Test Toast", true, None::<&str>)?;
     let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
     Menu::with_items(
@@ -79,6 +91,7 @@ fn build_menu(app: &AppHandle, state: &SharedState) -> tauri::Result<Menu<Wry>> 
             &pause_item,
             &resume_item,
             &settings_item,
+            &sanitize_now_item,
             &test_toast_item,
             &PredefinedMenuItem::separator(app)?,
             &quit_item,
@@ -87,20 +100,16 @@ fn build_menu(app: &AppHandle, state: &SharedState) -> tauri::Result<Menu<Wry>> 
 }
 
 fn toggle_enabled(app: &AppHandle, state: &SharedState, show_toast_notification: bool) {
-    let config = {
+    let (config, source_exe) = {
         let mut guard = state.lock().expect("state mutex poisoned");
         guard.config.enabled = !guard.config.enabled;
-        guard.config.clone()
+        (guard.config.clone(), guard.last_source_exe.clone())
     };
     if save_config(app, &config).is_ok() {
         sync_menu(app, state);
         emit_ui_state(app, state);
         if show_toast_notification {
-            let message = if config.enabled {
-                "Blankstop enabled"
-            } else {
-                "Blankstop disabled"
-            };
+            let message = format_enabled_toast(config.enabled, source_exe.as_deref());
             show_toast(app, message);
         }
     }
@@ -143,5 +152,17 @@ fn open_settings_window(app: &AppHandle, state: &SharedState) {
     if let Ok(window) = window {
         let _ = window.set_focus();
         emit_ui_state(app, state);
+    }
+}
+
+fn format_enabled_toast(enabled: bool, source_exe: Option<&str>) -> String {
+    let base = if enabled {
+        "Blankstop enabled"
+    } else {
+        "Blankstop disabled"
+    };
+    match source_exe {
+        Some(exe) => format!("{} ({})", base, exe),
+        None => base.to_string(),
     }
 }

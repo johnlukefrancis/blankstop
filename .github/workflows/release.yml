@@ -26,6 +26,20 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: install deps
         run: pnpm install
+      - name: verify versions match tag
+        shell: pwsh
+        run: |
+          $tagVersion = "${{ github.ref_name }}" -replace '^v', ''
+          if (-not $tagVersion) { throw "Unable to read tag version from ref name." }
+          $pkgVersion = (Get-Content package.json | ConvertFrom-Json).version
+          $tauriVersion = (Get-Content src-tauri/tauri.conf.json | ConvertFrom-Json).version
+          $cargoToml = Get-Content src-tauri/Cargo.toml -Raw
+          $cargoMatch = [regex]::Match($cargoToml, '(?ms)^\[package\].*?^version\s*=\s*"([^"]+)"')
+          if (-not $cargoMatch.Success) { throw "Cargo.toml [package] version not found." }
+          $cargoVersion = $cargoMatch.Groups[1].Value
+          if ($pkgVersion -ne $tagVersion -or $tauriVersion -ne $tagVersion -or $cargoVersion -ne $tagVersion) {
+            throw "Version mismatch: tag=$tagVersion package.json=$pkgVersion tauri.conf.json=$tauriVersion Cargo.toml=$cargoVersion"
+          }
       - name: build and release
         uses: tauri-apps/tauri-action@v0.6.0
         env:

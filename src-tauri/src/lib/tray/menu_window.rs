@@ -4,7 +4,7 @@ use super::menu_state::menu_state_from;
 use crate::state::SharedState;
 
 const MENU_WIDTH: u32 = 200;
-const MENU_HEIGHT: u32 = 220;
+const MENU_HEIGHT: u32 = 170;
 const MENU_MARGIN: i32 = 8;
 
 pub fn ensure_menu_window(app: &AppHandle) -> tauri::Result<()> {

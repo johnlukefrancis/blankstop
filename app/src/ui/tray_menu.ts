@@ -8,7 +8,7 @@ type TrayMenuState = {
 
 const elements = {
   enabled: document.getElementById("menu-enabled") as HTMLInputElement,
-  pause: document.getElementById("menu-pause") as HTMLButtonElement,
+  // pause: document.getElementById("menu-pause") as HTMLButtonElement,
   settings: document.getElementById("menu-settings") as HTMLButtonElement,
   sanitize: document.getElementById("menu-sanitize") as HTMLButtonElement,
   quit: document.getElementById("menu-quit") as HTMLButtonElement,
@@ -16,8 +16,8 @@ const elements = {
 
 function applyState(state: TrayMenuState) {
   elements.enabled.checked = state.enabled;
-  elements.pause.textContent = state.paused ? "Paused" : "Pause 5 min";
-  elements.pause.classList.toggle("paused", state.paused);
+  // elements.pause.textContent = state.paused ? "Paused" : "Pause 5 min";
+  // elements.pause.classList.toggle("paused", state.paused);
 }
 
 async function handleAction(action: string) {
@@ -40,7 +40,7 @@ async function init() {
 
   // Wire up click handlers
   elements.enabled.addEventListener("change", () => handleAction("enabled"));
-  elements.pause.addEventListener("click", () => handleAction("pause_5"));
+  // elements.pause.addEventListener("click", () => handleAction("pause_5"));
   elements.settings.addEventListener("click", () => handleAction("settings"));
   elements.sanitize.addEventListener("click", () => handleAction("sanitize_now"));
   elements.quit.addEventListener("click", () => handleAction("quit"));

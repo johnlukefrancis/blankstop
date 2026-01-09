@@ -4,7 +4,7 @@ use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Manager, WebviewUrl, Wry};
 
-use crate::state::{emit_ui_state, is_paused, save_config, Config, SharedState};
+use crate::state::{emit_ui_state, is_paused, lock_state, save_config, Config, SharedState};
 use crate::toast::show_toast;
 #[cfg(target_os = "windows")]
 use crate::win::clipboard_listener::sanitize_clipboard_now;
@@ -76,7 +76,7 @@ pub fn sync_menu(app: &AppHandle, state: &SharedState) {
 
 fn build_menu(app: &AppHandle, state: &SharedState) -> tauri::Result<Menu<Wry>> {
     let (config, paused) = {
-        let guard = state.lock().expect("state mutex poisoned");
+        let guard = lock_state(state);
         (guard.config.clone(), is_paused(&guard))
     };
     let enabled_item = CheckMenuItem::with_id(
@@ -111,7 +111,7 @@ fn build_menu(app: &AppHandle, state: &SharedState) -> tauri::Result<Menu<Wry>> 
 
 fn toggle_enabled(app: &AppHandle, state: &SharedState, show_toast_notification: bool) {
     let (config, source_exe) = {
-        let mut guard = state.lock().expect("state mutex poisoned");
+        let mut guard = lock_state(state);
         guard.config.enabled = !guard.config.enabled;
         (guard.config.clone(), guard.last_source_exe.clone())
     };
@@ -126,7 +126,7 @@ fn toggle_enabled(app: &AppHandle, state: &SharedState, show_toast_notification:
 }
 
 fn set_paused(state: &SharedState, duration: Option<Duration>) {
-    let mut guard = state.lock().expect("state mutex poisoned");
+    let mut guard = lock_state(state);
     guard.paused_until = duration.map(|d| Instant::now() + d);
 }
 
@@ -137,7 +137,7 @@ pub fn set_enabled_from_shortcut(app: &AppHandle, state: &SharedState) {
 pub fn apply_config(app: &AppHandle, state: &SharedState, mut config: Config) -> Result<(), String> {
     config.normalize();
     {
-        let mut guard = state.lock().expect("state mutex poisoned");
+        let mut guard = lock_state(state);
         guard.config = config.clone();
     }
     save_config(app, &config)?;

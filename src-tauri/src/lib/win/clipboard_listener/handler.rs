@@ -6,7 +6,7 @@ use windows::Win32::Foundation::HWND;
 use super::clipboard::{read_clipboard_text, write_clipboard_text};
 use crate::sanitize::sanitize_text;
 use crate::state::{
-    emit_ui_state, hash_text, is_paused, now_ms, push_log, set_debug_capture, LogEntry,
+    emit_ui_state, hash_text, is_paused, lock_state, now_ms, push_log, set_debug_capture, LogEntry,
     SharedState,
 };
 use crate::toast::show_toast;
@@ -17,7 +17,7 @@ const SELF_WRITE_WINDOW_MS: u64 = 700;
 pub fn handle_clipboard_update(app: &AppHandle, state: &SharedState, hwnd: HWND) {
     let now = Instant::now();
     {
-        let guard = state.lock().expect("state mutex poisoned");
+        let guard = lock_state(state);
         if !guard.config.enabled {
             return;
         }
@@ -39,7 +39,7 @@ pub fn handle_clipboard_update(app: &AppHandle, state: &SharedState, hwnd: HWND)
 
     let text_hash = hash_text(&text);
     {
-        let guard = state.lock().expect("state mutex poisoned");
+        let guard = lock_state(state);
         if guard.last_written_hash == Some(text_hash) {
             return;
         }
@@ -48,7 +48,7 @@ pub fn handle_clipboard_update(app: &AppHandle, state: &SharedState, hwnd: HWND)
     let owner_exe = clipboard_owner_exe_name_strict();
     let source_exe = owner_exe.clone().or_else(foreground_exe_name);
     let config = {
-        let guard = state.lock().expect("state mutex poisoned");
+        let guard = lock_state(state);
         guard.config.clone()
     };
 
@@ -65,7 +65,7 @@ pub fn handle_clipboard_update(app: &AppHandle, state: &SharedState, hwnd: HWND)
     let toast_message = result.summary.toast_message();
     let toast_with_source = format_sanitize_toast(&toast_message, source_exe.as_deref());
     {
-        let mut guard = state.lock().expect("state mutex poisoned");
+        let mut guard = lock_state(state);
         set_debug_capture(&mut guard, &text, &toast_message);
     }
     let normalized_input = text.replace("\r\n", "\n").replace('\r', "\n");
@@ -79,7 +79,7 @@ pub fn handle_clipboard_update(app: &AppHandle, state: &SharedState, hwnd: HWND)
     }
 
     {
-        let mut guard = state.lock().expect("state mutex poisoned");
+        let mut guard = lock_state(state);
         guard.last_written_hash = Some(hash_text(&output_for_clipboard));
         guard.self_write_until = Some(Instant::now() + Duration::from_millis(SELF_WRITE_WINDOW_MS));
         guard.last_source_exe = source_exe.clone();
@@ -101,7 +101,7 @@ pub fn handle_clipboard_update(app: &AppHandle, state: &SharedState, hwnd: HWND)
 
 pub fn sanitize_clipboard_now(app: &AppHandle, state: &SharedState) -> bool {
     let (config, paused) = {
-        let guard = state.lock().expect("state mutex poisoned");
+        let guard = lock_state(state);
         (guard.config.clone(), is_paused(&guard))
     };
     if paused {
@@ -126,7 +126,7 @@ pub fn sanitize_clipboard_now(app: &AppHandle, state: &SharedState) -> bool {
     let result = sanitize_text(&text);
     let toast_message = result.summary.toast_message();
     {
-        let mut guard = state.lock().expect("state mutex poisoned");
+        let mut guard = lock_state(state);
         set_debug_capture(&mut guard, &text, &toast_message);
     }
 
@@ -141,7 +141,7 @@ pub fn sanitize_clipboard_now(app: &AppHandle, state: &SharedState) -> bool {
     }
 
     {
-        let mut guard = state.lock().expect("state mutex poisoned");
+        let mut guard = lock_state(state);
         guard.last_written_hash = Some(hash_text(&output_for_clipboard));
         guard.self_write_until = Some(Instant::now() + Duration::from_millis(SELF_WRITE_WINDOW_MS));
         guard.last_source_exe = source_exe.clone();

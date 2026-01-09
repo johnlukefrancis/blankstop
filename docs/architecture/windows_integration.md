@@ -10,11 +10,13 @@ How it works:
 - A dedicated thread creates a message-only window (`HWND_MESSAGE`).
 - The window registers with `AddClipboardFormatListener`.
 - Windows sends `WM_CLIPBOARDUPDATE` on clipboard changes.
-- The window proc forwards events to `handle_clipboard_update`.
+- The window proc enqueues a clipboard update signal (O(1)).
+- A worker thread drains the queue and calls `handle_clipboard_update`.
 
 Why this design:
 - Event-driven: avoids polling and minimizes latency.
 - Message-only window stays invisible and does not appear in the taskbar.
+- Win32 callbacks stay minimal to avoid panics or blocking work.
 
 ## Clipboard owner exe resolution
 Owner: `src-tauri/src/lib/win/process.rs`

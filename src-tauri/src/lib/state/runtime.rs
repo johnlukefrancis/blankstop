@@ -3,7 +3,7 @@ use std::time::Instant;
 
 use tauri::{AppHandle, Emitter};
 
-use super::{AppState, Config, LogEntry, UiState};
+use super::{lock_state, AppState, Config, LogEntry, UiState};
 
 pub type SharedState = Arc<Mutex<AppState>>;
 
@@ -49,7 +49,7 @@ pub fn ui_state(state: &AppState) -> UiState {
 }
 
 pub fn emit_ui_state(app: &AppHandle, shared: &SharedState) {
-    let state = shared.lock().expect("state mutex poisoned");
+    let state = lock_state(shared);
     let payload = ui_state(&state);
     let _ = app.emit("ui-state", payload);
 }

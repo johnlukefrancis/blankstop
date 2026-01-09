@@ -1,4 +1,5 @@
 use std::ffi::c_void;
+use std::sync::mpsc::SyncSender;
 
 use tauri::AppHandle;
 use windows::core::w;
@@ -13,10 +14,11 @@ use windows::Win32::UI::WindowsAndMessaging::{
     MSG, WM_CLIPBOARDUPDATE, WM_DESTROY, WM_NCCREATE, WNDCLASSW, WS_OVERLAPPEDWINDOW,
 };
 
-use super::handler::handle_clipboard_update;
+use super::worker::start_worker;
 use crate::state::SharedState;
 
 pub fn start_listener(app: AppHandle, state: SharedState) {
+    let worker_tx = start_worker(app, state);
     std::thread::spawn(move || {
         let class_name = w!("BlankstopClipboardListener");
         let hinstance = unsafe { GetModuleHandleW(None) }.ok();
@@ -36,7 +38,7 @@ pub fn start_listener(app: AppHandle, state: SharedState) {
             RegisterClassW(&wnd_class);
         }
 
-        let ctx = Box::new(ListenerContext { app, state });
+        let ctx = Box::new(ListenerContext { worker_tx });
         let ctx_ptr = Box::into_raw(ctx) as *mut c_void;
 
         let hwnd = unsafe {
@@ -76,8 +78,7 @@ pub fn start_listener(app: AppHandle, state: SharedState) {
 }
 
 struct ListenerContext {
-    app: AppHandle,
-    state: SharedState,
+    worker_tx: SyncSender<isize>,
 }
 
 unsafe extern "system" fn window_proc(
@@ -96,7 +97,7 @@ unsafe extern "system" fn window_proc(
         WM_CLIPBOARDUPDATE => {
             let ctx = get_context(hwnd);
             if let Some(ctx) = ctx {
-                handle_clipboard_update(&ctx.app, &ctx.state, hwnd);
+                let _ = ctx.worker_tx.try_send(hwnd.0 as isize);
             }
             LRESULT(0)
         }

@@ -1,4 +1,5 @@
 use swc_common::{sync::Lrc, FileName, Globals, SourceMap, GLOBALS};
+use swc_common::syntax_pos::BytePos;
 use swc_ecma_parser::{lexer::Lexer, Parser, StringInput, Syntax};
 
 pub fn parse_js(text: &str) -> Result<(), ()> {
@@ -20,7 +21,7 @@ fn parse_module(cm: Lrc<SourceMap>, text: &str) -> Result<(), ()> {
     let lexer = Lexer::new(
         Syntax::Es(Default::default()),
         Default::default(),
-        StringInput::new(&fm, 0, 0),
+        StringInput::new(text, BytePos(0), BytePos(text.len() as u32)),
         None,
     );
     let mut parser = Parser::new_from(lexer);
@@ -39,7 +40,7 @@ fn parse_script(cm: Lrc<SourceMap>, text: &str) -> Result<(), ()> {
     let lexer = Lexer::new(
         Syntax::Es(Default::default()),
         Default::default(),
-        StringInput::new(&fm, 0, 0),
+        StringInput::new(text, BytePos(0), BytePos(text.len() as u32)),
         None,
     );
     let mut parser = Parser::new_from(lexer);

@@ -5,6 +5,8 @@ apps and cleans up soft-wrapped text before you paste.
 
 ## Install
 - GitHub Releases (placeholder until releases exist).
+- Windows (local build): run the NSIS installer from
+  `src-tauri/target/release/bundle/nsis/` (or GitHub Releases once added).
 - For local installers and packaging notes, see
   `docs/release/windows_installer.md`.
 

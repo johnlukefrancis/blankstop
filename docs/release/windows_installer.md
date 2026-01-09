@@ -6,18 +6,23 @@ outputs. It is intentionally scoped to Windows packaging.
 ## Build outputs (Windows)
 
 Config source: `src-tauri/tauri.conf.json`
-- `bundle.targets` is set to `"all"`.
+- `bundle.targets` is set to `["nsis"]` (NSIS installer only).
+- `bundle.windows.webviewInstallMode` is `embedBootstrapper` to keep installs
+  self-contained.
 
 Observed outputs in this repo:
 - There are no Windows release bundles checked in at this time.
 
 Where to find artifacts after a Windows build:
-- `src-tauri/target/release/bundle/` (bundle-type subfolders created by Tauri)
+- NSIS installer output: `src-tauri/target/release/bundle/nsis/`
 
-Note: Because no Windows bundle outputs are present in this repo, the exact
-bundle types and filenames must be read from the Windows build output directory
-above. Do not assume a specific installer type without verifying the folder
-contents after `pnpm tauri build` on Windows.
+Note: No Windows bundle outputs are checked in. Verify filenames in the output
+folder after running `pnpm tauri build` on Windows.
+
+## MSI (WiX) status
+MSI is not built by default. If we switch back to `bundle.targets = "all"` or
+add `"msi"` later, WiX may fail unless the **VBSCRIPT** optional Windows
+feature is enabled on the build machine.
 
 ## Prerequisites / tooling
 Only what this repo actually uses:

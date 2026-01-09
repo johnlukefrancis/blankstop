@@ -12,12 +12,19 @@ use windows::Win32::UI::WindowsAndMessaging::{
     GetForegroundWindow, GetWindowThreadProcessId,
 };
 
-pub fn clipboard_owner_exe_name() -> Option<String> {
+pub fn clipboard_owner_exe_name_strict() -> Option<String> {
     unsafe {
-        let mut hwnd = GetClipboardOwner().ok()?;
+        let hwnd = GetClipboardOwner().ok()?;
         if hwnd.0.is_null() {
-            hwnd = GetForegroundWindow();
+            return None;
         }
+        exe_name_from_hwnd(hwnd)
+    }
+}
+
+pub fn foreground_exe_name() -> Option<String> {
+    unsafe {
+        let hwnd = GetForegroundWindow();
         if hwnd.0.is_null() {
             return None;
         }

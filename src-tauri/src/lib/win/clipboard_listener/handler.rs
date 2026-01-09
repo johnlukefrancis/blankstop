@@ -10,7 +10,7 @@ use crate::state::{
     SharedState,
 };
 use crate::toast::show_toast;
-use crate::win::process::clipboard_owner_exe_name;
+use crate::win::process::{clipboard_owner_exe_name_strict, foreground_exe_name};
 
 const SELF_WRITE_WINDOW_MS: u64 = 700;
 
@@ -45,14 +45,15 @@ pub fn handle_clipboard_update(app: &AppHandle, state: &SharedState, hwnd: HWND)
         }
     }
 
-    let source_exe = clipboard_owner_exe_name();
+    let owner_exe = clipboard_owner_exe_name_strict();
+    let source_exe = owner_exe.clone().or_else(foreground_exe_name);
     let config = {
         let guard = state.lock().expect("state mutex poisoned");
         guard.config.clone()
     };
 
     if config.only_allowlisted {
-        let Some(ref exe) = source_exe else {
+        let Some(ref exe) = owner_exe else {
             return;
         };
         if !config.allowlist.contains(exe) {
@@ -105,9 +106,10 @@ pub fn sanitize_clipboard_now(app: &AppHandle, state: &SharedState) -> bool {
     if paused {
         return false;
     }
-    let source_exe = clipboard_owner_exe_name();
+    let owner_exe = clipboard_owner_exe_name_strict();
+    let source_exe = owner_exe.clone().or_else(foreground_exe_name);
     if config.only_allowlisted {
-        let Some(ref exe) = source_exe else {
+        let Some(ref exe) = owner_exe else {
             return false;
         };
         if !config.allowlist.contains(exe) {

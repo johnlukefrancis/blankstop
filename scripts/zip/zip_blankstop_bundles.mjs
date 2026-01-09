@@ -1,4 +1,4 @@
-// Description: Create per-folder zip bundles for blankstop (app + src-tauri [+ docs]).
+// Description: Create per-folder zip bundles for blankstop (app + src-tauri + scripts + infra + docs).
 
 import { execSync, spawnSync } from 'node:child_process';
 import { promises as fs } from 'node:fs';
@@ -106,6 +106,23 @@ async function listFilesFallback(rootDir, relativeRoot = '') {
   return files;
 }
 
+async function listFilesFallbackForRoot(root) {
+  const rootPath = path.join(repoRoot, root);
+  try {
+    const stats = await fs.stat(rootPath);
+    if (stats.isFile()) {
+      return [root.replace(/\\/g, '/')];
+    }
+    if (stats.isDirectory()) {
+      const files = await listFilesFallback(rootPath);
+      return files.map((file) => path.join(root, file).replace(/\\/g, '/'));
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
+
 async function getFilesForBundle(roots) {
   const gitFiles = await listGitFiles(roots);
   if (gitFiles.length > 0) {
@@ -113,17 +130,8 @@ async function getFilesForBundle(roots) {
   }
   const fallback = [];
   for (const root of roots) {
-    const rootPath = path.join(repoRoot, root);
-    try {
-      const files = await listFilesFallback(rootPath);
-      fallback.push(
-        ...files
-          .map((file) => path.join(root, file).replace(/\\/g, '/'))
-          .filter((file) => !file.startsWith('scripts/zip/output/')),
-      );
-    } catch {
-      // ignore missing roots
-    }
+    const files = await listFilesFallbackForRoot(root);
+    fallback.push(...files.filter((file) => !file.startsWith('scripts/zip/output/')));
   }
   return fallback;
 }
@@ -326,12 +334,26 @@ const timestamp = formatTimestamp(new Date());
 const sha = getGitShortSha();
 const args = process.argv.slice(2);
 const latestOnly = args.includes('--latest-only');
-const includeDocs = args.includes('--docs') || args.includes('--docs-only');
+const includeDocs = true;
+
+const infraRoots = [
+  'package.json',
+  'pnpm-lock.yaml',
+  'tsconfig.json',
+  'vite.config.ts',
+  'README.md',
+  'LICENSE',
+  'AGENTS.md',
+  'CLAUDE.md',
+  '.github',
+  '.vscode',
+];
 
 const bundles = [
   { bundleName: 'app', roots: ['app'] },
   { bundleName: 'src_tauri', roots: ['src-tauri'] },
   { bundleName: 'scripts', roots: ['scripts'] },
+  { bundleName: 'infra', roots: infraRoots },
 ];
 
 if (includeDocs) {

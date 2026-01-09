@@ -1,5 +1,4 @@
-use swc_common::{sync::Lrc, FileName, Globals, SourceMap, GLOBALS};
-use swc_common::syntax_pos::BytePos;
+use swc_common::{sync::Lrc, BytePos, FileName, Globals, SourceMap, GLOBALS};
 use swc_ecma_parser::{lexer::Lexer, Parser, StringInput, Syntax};
 
 pub fn parse_js(text: &str) -> Result<(), ()> {

@@ -16,8 +16,12 @@ fn sanitize_clipboard_now(_app: &AppHandle, _state: &SharedState) -> bool {
 
 pub fn init_tray(app: &AppHandle, state: SharedState) -> tauri::Result<()> {
     let menu = build_menu(app, &state)?;
+    let icon = app
+        .default_window_icon()
+        .cloned()
+        .unwrap_or_else(|| tauri::include_image!("icons/128x128.png").clone());
     TrayIconBuilder::with_id("main")
-        .icon(app.default_window_icon().cloned().unwrap())
+        .icon(icon)
         .tooltip("Blankstop")
         .menu(&menu)
         .on_menu_event(move |app, event| {

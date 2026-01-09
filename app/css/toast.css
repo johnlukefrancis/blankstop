@@ -28,7 +28,7 @@ body.toast-mode #toast-root {
   box-sizing: border-box;
   padding: var(--space-4) var(--space-5);
   border-radius: var(--radius-xl);
-  background: rgba(18, 26, 36, 0.75);
+  background: rgba(18, 26, 36, 0.92);
   border: 1px solid var(--border-subtle);
   backdrop-filter: blur(20px);
   box-shadow:

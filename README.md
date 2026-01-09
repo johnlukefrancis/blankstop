@@ -1,89 +1,77 @@
-# Blankstop
+<p align="center">
+  <img src="app/assets/icon.png" alt="Blankstop" width="128" height="128">
+</p>
 
-Blankstop is a Windows-first tray app that watches clipboard updates from terminal
-apps and cleans up soft-wrapped text before you paste.
+<h1 align="center">Blankstop</h1>
 
-## Install
-- GitHub Releases.
-- Windows (local build): run the NSIS installer from
-  `src-tauri/target/release/bundle/nsis/` (or GitHub Releases once added).
-- For local installers and packaging notes, see
-  `docs/release/windows_installer.md`.
+<p align="center">
+  <strong>Fix soft-wrapped clipboard text on Windows.</strong><br>
+  No more <code>Invalid or unexpected token</code> when pasting LLM snippets or console output.
+</p>
 
-## Releases
-- Download the Windows installer from GitHub Releases.
+---
 
-## What it does
-- Runs in the system tray with no main window on launch.
-- Listens to clipboard changes using Win32 events (no polling).
-- Only sanitizes text copied from allowlisted processes by default.
-- Sanitizer uses a JS parse "oracle": JS-like text is only rewritten if the
-  reflowed result parses as valid JS; otherwise the clipboard stays unchanged.
-- Shows a brief glass-style toast when it modifies the clipboard.
-- Global shortcut: Ctrl+Alt+Shift+V toggles Enabled.
+- **Automatic** — Runs in the system tray; fixes clipboard text as you copy.
+- **Safe** — Only rewrites JavaScript/TypeScript if the result parses correctly.
+- **Scoped** — Allowlist controls which apps can trigger changes.
+- **Private** — Local-only; no telemetry or network calls.
 
-## When it will NOT change your clipboard
-- Blankstop is disabled (tray toggle or settings).
-- Pause is active (tray menu).
-- `only_allowlisted` is on and the clipboard owner exe is not allowlisted (or
-  owner exe can’t be resolved).
-- JS-like text failed parse validation (oracle rejects, so clipboard unchanged).
-- Sanitizer produced no material changes (output matches normalized input).
+<p align="center">
+  <img src="docs/screenshots/settings.png" alt="Settings window" width="340">
+  &nbsp;&nbsp;&nbsp;
+  <img src="docs/screenshots/installer.png" alt="Installer" width="340">
+</p>
+
+## Download
+
+Get the latest Windows installer from [**GitHub Releases**](../../releases).
+
+After installing, Blankstop starts as a tray app with no main window. Right-click the tray icon to access settings.
+
+## How it works
+
+1. Listens for clipboard changes via Win32 events (no polling).
+2. If the source app is allowlisted, runs the sanitizer pipeline:
+   - Normalizes line endings and strips invisible characters.
+   - Detects JS/TS-like code and attempts to reflow soft-wrapped lines.
+   - **Only rewrites if the result parses as valid JavaScript** (parse oracle).
+   - Falls back to conservative text cleanup for non-JS content.
+3. Shows a brief toast when clipboard text is modified.
+
+**Global shortcut:** `Ctrl+Alt+Shift+V` toggles enabled/disabled.
+
+## When Blankstop will NOT change your clipboard
+
+- Disabled via tray or settings.
+- Pause is active.
+- Source app is not in the allowlist (when `only_allowlisted` is on).
+- JS parse validation failed — original text is preserved.
+- No material changes after cleanup.
 
 ## Settings
-Settings are in the tray menu (quick toggles) and the settings window.
 
-Toggles & fields:
-- Enabled
-- Toast enabled
-- Status toast enabled
-- Only allowlisted
-- Allowlist (one exe per line)
-- Run on startup
+Access via tray menu → Settings.
 
-Debug surfaces:
-- Settings UI shows last source exe and last action time.
-- Deeper debug fields (`debug_last_clipboard`, `debug_last_summary`) exist in
-  `UiState` but are not rendered in the UI; inspect via devtools by invoking
-  `get_ui_state`.
+| Option | Description |
+|--------|-------------|
+| Enabled | Master on/off switch |
+| Toast enabled | Show notification on clipboard change |
+| Only allowlisted | Restrict to specific apps |
+| Allowlist | One exe name per line (e.g., `windowsterminal.exe`) |
+| Run on startup | Launch at Windows login |
 
 ## Development
-Install dependencies:
 
 ```bash
-pnpm install
+pnpm install          # Install dependencies
+pnpm tauri dev        # Run in dev mode (Windows)
+pnpm tauri build      # Build installer
 ```
 
-WSL -> Windows workflow (required for running the app on Windows):
-- Sync to Windows:
-  - One-shot: `scripts/sync_to_windows.sh`
-  - Watch mode: `scripts/watch_sync_to_windows.sh`
-- Optional: set `BLANKSTOP_WIN_PATH` to override the Windows path
-  (default: `/mnt/c/code/blankstop`).
-
-Run the app on Windows (from the mirrored repo):
-
-```bash
-pnpm tauri dev
-```
-
-Build the app:
-
-```bash
-pnpm tauri build
-```
-
-## Troubleshooting (quick)
-See `docs/runbook/troubleshooting.md` for symptom → cause → where to inspect.
-
-## Docs
-- `docs/architecture/system_overview.md`
-- `docs/architecture/sanitizer_pipeline.md`
-- `docs/architecture/windows_integration.md`
-- `docs/release/windows_installer.md`
-- `docs/runbook/troubleshooting.md`
+**WSL users:** Sync to Windows with `scripts/sync_to_windows.sh` before running.
 
 ## Security & privacy
-- Local-only: no telemetry, no network calls for clipboard data.
-- Allowlist is on by default; only allowlisted executables can trigger changes.
-- Clipboard is only rewritten when sanitization makes a validated change.
+
+- **Local-only:** No telemetry, no network calls for clipboard data.
+- **Allowlist default:** Only allowlisted apps can trigger changes.
+- **Conservative rewrites:** Clipboard is only modified when the sanitizer produces a validated, material change.

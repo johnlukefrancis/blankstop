@@ -1,4 +1,5 @@
 use super::{sanitize_text, sanitize_text_text_mode};
+use super::limits::MAX_CLIPBOARD_CHARS;
 use super::js;
 
 #[test]
@@ -285,4 +286,19 @@ fn js_like_but_not_parseable_returns_normalized_input() {
     let result = sanitize_text(input);
     assert_eq!(result.output, "return\n  fallback\n");
     assert!(!result.summary.js_validated);
+}
+
+#[test]
+fn huge_input_skips_js_validation() {
+    let line = "const value = 1;   \n";
+    let line_len = line.chars().count();
+    let repeat = (MAX_CLIPBOARD_CHARS / line_len) + 5;
+    let mut input = String::with_capacity(line.len() * repeat);
+    for _ in 0..repeat {
+        input.push_str(line);
+    }
+    let result = sanitize_text(&input);
+    assert!(!result.summary.js_validated);
+    assert!(!result.output.contains(";   \n"));
+    assert!(result.output.contains("const value = 1;\n"));
 }

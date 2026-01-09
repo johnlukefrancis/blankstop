@@ -43,7 +43,7 @@ pub fn ui_state(state: &AppState) -> UiState {
         config: state.config.clone(),
         last_source_exe: state.last_source_exe.clone(),
         log: state.log.clone(),
-        debug_last_clipboard: state.debug_last_clipboard.clone(),
+        debug_last_clipboard: debug_last_clipboard_for_ui(state),
         debug_last_summary: state.debug_last_summary.clone(),
     }
 }
@@ -54,9 +54,27 @@ pub fn emit_ui_state(app: &AppHandle, shared: &SharedState) {
     let _ = app.emit("ui-state", payload);
 }
 
+#[cfg(debug_assertions)]
+fn debug_last_clipboard_for_ui(state: &AppState) -> Option<String> {
+    state.debug_last_clipboard.clone()
+}
+
+#[cfg(not(debug_assertions))]
+fn debug_last_clipboard_for_ui(_state: &AppState) -> Option<String> {
+    None
+}
+
 #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+#[cfg(debug_assertions)]
 pub fn set_debug_capture(state: &mut AppState, raw: &str, summary: &str) {
     state.debug_last_clipboard = Some(truncate_debug(raw));
+    state.debug_last_summary = Some(truncate_debug(summary));
+}
+
+#[cfg_attr(not(target_os = "windows"), allow(dead_code))]
+#[cfg(not(debug_assertions))]
+pub fn set_debug_capture(state: &mut AppState, _raw: &str, summary: &str) {
+    state.debug_last_clipboard = None;
     state.debug_last_summary = Some(truncate_debug(summary));
 }
 

@@ -55,6 +55,8 @@ Frontend windows (webview):
 - Normalize + clean text, then:
   - JS path: attempt JS reflow, validate by parsing; only rewrite if parse succeeds.
   - Fallback path: text-mode unwrapping and cleanup.
+- Large input guard: oversized payloads skip JS parse and text unwrapping; only
+  clean + trailing whitespace trim runs.
 - If sanitized output equals normalized input, stop (no rewrite, no toast).
 
 6) Conditional rewrite
@@ -78,7 +80,8 @@ Runtime state (non-persistent):
   - `last_written_hash` and `self_write_until` (self-write loop guard)
   - `last_source_exe`
   - `log` (recent sanitize events)
-  - `debug_last_clipboard` + `debug_last_summary` (truncated)
+  - `debug_last_clipboard` + `debug_last_summary` (truncated; raw clipboard is
+    dev-only and never captured/emitted in release builds)
 
 UI sync:
 - Settings window loads initial state via `get_ui_state`.

@@ -7,6 +7,7 @@ It describes the actual end-state behavior (no speculation).
 Entry point: `sanitize_text` in `src-tauri/src/lib/sanitize/mod.rs`.
 The pipeline is:
 1) Pre-clean stage (normalize + strip).
+1.5) Large input guard (skip JS + unwrap when oversized).
 2) JS-like detection gate (conservative).
 3) JS reflow + parse validation (oracle).
 4) Fallback text-mode sanitizer (non-JS).
@@ -34,6 +35,15 @@ Why:
 Outputs:
 - `clean.text`: normalized + cleaned + bullet-stripped.
 - `clean.normalized`: line-ending normalized only (used for JS fallback).
+
+## Large input guard (skip heavy paths)
+Owner: `src-tauri/src/lib/sanitize/limits.rs`
+
+Behavior:
+- If cleaned text exceeds `MAX_CLIPBOARD_CHARS` (currently 250,000 chars),
+  the sanitizer skips JS detection/reflow/parse and skips text-mode unwrapping.
+- Only the pre-clean stage + per-line trailing whitespace trimming runs.
+- `js_validated` remains false for this path.
 
 ## JS-like detection (conservative gate)
 Owner: `src-tauri/src/lib/sanitize/js/mod.rs`
@@ -129,6 +139,8 @@ output equals the normalized input. Common reasons:
 Inspecting debug state:
 - `UiState` includes `debug_last_clipboard` and `debug_last_summary` (truncated to
   4096 chars) set by the clipboard handler.
+- `debug_last_clipboard` is dev-only; in release builds it is never captured and
+  is always `None` in `UiState`.
 - These fields are not rendered in the settings UI; inspect via devtools by
   invoking `get_ui_state` and applying `JSON.stringify` to reveal escapes.
 

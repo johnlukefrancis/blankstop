@@ -1,6 +1,7 @@
 mod normalize;
 mod clean;
 mod js;
+mod limits;
 mod boundaries;
 mod context;
 mod heuristics;
@@ -36,6 +37,9 @@ pub struct SanitizeResult {
 
 pub fn sanitize_text(input: &str) -> SanitizeResult {
     let clean = clean_text(input);
+    if limits::exceeds_max_clipboard_chars(&clean.text) {
+        return limits::sanitize_large_input(clean);
+    }
     if js::looks_js_like(&clean.text) {
         if let Some(output) = js::sanitize_js(&clean.text) {
             return SanitizeResult {
@@ -68,6 +72,9 @@ pub fn sanitize_text(input: &str) -> SanitizeResult {
 #[cfg_attr(not(test), allow(dead_code))]
 pub(crate) fn sanitize_text_text_mode(input: &str) -> SanitizeResult {
     let clean = clean_text(input);
+    if limits::exceeds_max_clipboard_chars(&clean.text) {
+        return limits::sanitize_large_input(clean);
+    }
     sanitize_text_text_mode_from_clean(clean)
 }
 

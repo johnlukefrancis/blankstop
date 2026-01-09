@@ -161,7 +161,7 @@ pub fn sanitize_clipboard_now(app: &AppHandle, state: &SharedState) -> bool {
 
 fn format_sanitize_toast(message: &str, source_exe: Option<&str>) -> String {
     match source_exe {
-        Some(exe) => format!("{} ({})", message, exe),
+        Some(exe) => format!("{}\n({})", message, exe),
         None => message.to_string(),
     }
 }

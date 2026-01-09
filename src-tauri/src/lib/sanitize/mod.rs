@@ -140,13 +140,10 @@ impl SanitizeSummary {
                 if self.stripped_prefixes == 1 { "" } else { "es" }
             ));
         }
-        if self.js_validated {
-            parts.push("js validated".to_string());
-        }
         if parts.is_empty() {
-            "Sanitized clipboard".to_string()
+            "Clipboard sanitized".to_string()
         } else {
-            format!("Sanitized clipboard: {}", parts.join(", "))
+            format!("Clipboard sanitized: {}", parts.join(", "))
         }
     }
 }

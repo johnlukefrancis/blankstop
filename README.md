@@ -4,11 +4,14 @@ Blankstop is a Windows-first tray app that watches clipboard updates from termin
 apps and cleans up soft-wrapped text before you paste.
 
 ## Install
-- GitHub Releases (placeholder until releases exist).
+- GitHub Releases.
 - Windows (local build): run the NSIS installer from
   `src-tauri/target/release/bundle/nsis/` (or GitHub Releases once added).
 - For local installers and packaging notes, see
   `docs/release/windows_installer.md`.
+
+## Releases
+- Download the Windows installer from GitHub Releases.
 
 ## What it does
 - Runs in the system tray with no main window on launch.

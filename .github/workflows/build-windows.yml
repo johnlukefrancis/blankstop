@@ -24,9 +24,25 @@ jobs:
         run: pnpm install
       - name: build installer
         run: pnpm tauri build
+      - name: generate sha256
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path "src-tauri/target/release/bundle/nsis/*-setup.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if (-not $exe) { throw "NSIS installer not found." }
+          $hash = (Get-FileHash -Path $exe.FullName -Algorithm SHA256).Hash.ToLower()
+          $line = "$hash  $($exe.Name)"
+          $outDir = "src-tauri/target/release/bundle/nsis"
+          $outFile = Join-Path $outDir "blankstop-${{ github.sha }}.sha256"
+          Set-Content -Path $outFile -Value $line -Encoding ASCII
       - name: upload nsis installer
         uses: actions/upload-artifact@v4
         with:
           name: blankstop-nsis
           path: src-tauri/target/release/bundle/nsis/**
+          if-no-files-found: error
+      - name: upload sha256
+        uses: actions/upload-artifact@v4
+        with:
+          name: blankstop-nsis-sha256
+          path: src-tauri/target/release/bundle/nsis/*.sha256
           if-no-files-found: error

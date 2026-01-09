@@ -40,6 +40,16 @@ jobs:
           if ($pkgVersion -ne $tagVersion -or $tauriVersion -ne $tagVersion -or $cargoVersion -ne $tagVersion) {
             throw "Version mismatch: tag=$tagVersion package.json=$pkgVersion tauri.conf.json=$tauriVersion Cargo.toml=$cargoVersion"
           }
+      - name: generate sha256
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Path "src-tauri/target/release/bundle/nsis/*-setup.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+          if (-not $exe) { throw "NSIS installer not found." }
+          $hash = (Get-FileHash -Path $exe.FullName -Algorithm SHA256).Hash.ToLower()
+          $line = "$hash  $($exe.Name)"
+          $outDir = "src-tauri/target/release/bundle/nsis"
+          $outFile = Join-Path $outDir "blankstop-${{ github.ref_name }}.sha256"
+          Set-Content -Path $outFile -Value $line -Encoding ASCII
       - name: build and release
         uses: tauri-apps/tauri-action@v0.6.0
         env:
@@ -51,3 +61,6 @@ jobs:
           releaseBody: Windows installer for ${{ github.ref_name }}.
           releaseDraft: false
           prerelease: false
+          includeDebug: false
+          args: --target x86_64-pc-windows-msvc
+          assets: src-tauri/target/release/bundle/nsis/*.sha256

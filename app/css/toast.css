@@ -9,6 +9,8 @@ html.toast-mode body {
   height: 100%;
   overflow: hidden;
   margin: 0;
+  /* Clip corners at window level */
+  border-radius: var(--radius-lg);
 }
 
 /* Hide noise overlay in toast mode */

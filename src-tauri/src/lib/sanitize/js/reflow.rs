@@ -252,7 +252,7 @@ fn looks_like_property_start(text: &str) -> bool {
                     prev_escape = false;
                     continue;
                 }
-                if ch == '\\\\' {
+                if ch == '\\' {
                     prev_escape = true;
                     continue;
                 }

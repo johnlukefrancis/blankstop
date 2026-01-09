@@ -19,11 +19,11 @@ pub fn looks_js_like(text: &str) -> bool {
 
 pub fn sanitize_js(text: &str) -> Option<String> {
     let candidate = reflow::reflow_js(text);
-    parse::parse_and_codegen(&candidate).ok().map(|_| candidate)
+    parse::parse_js(&candidate).ok().map(|_| candidate)
 }
 
 pub fn is_valid_js(text: &str) -> bool {
-    parse::parse_and_codegen(text).is_ok()
+    parse::parse_js(text).is_ok()
 }
 
 fn has_js_signal(text: &str) -> bool {

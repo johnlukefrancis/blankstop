@@ -1,3 +1,5 @@
+use super::detect_helpers::{has_heredoc_operator, powershell_signal_score};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ShellFlavor {
     Bash,
@@ -47,6 +49,13 @@ fn detect_shell_flavor(text: &str) -> Option<ShellFlavor> {
         }
         if line_trim.contains("$(") || line_trim.contains("${") {
             bash_score += 1;
+        }
+        if has_heredoc_operator(line_trim) {
+            bash_score += 3;
+        }
+        let ps_signal = powershell_signal_score(line_trim);
+        if ps_signal > 0 {
+            ps_score += ps_signal;
         }
         if let Some(kind) = continuation_kind(line_trim) {
             match kind {
@@ -115,5 +124,16 @@ fn continuation_kind(line: &str) -> Option<ShellFlavor> {
         '`' => Some(ShellFlavor::PowerShell),
         '^' => Some(ShellFlavor::Cmd),
         _ => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::looks_shell_like;
+
+    #[test]
+    fn looks_shell_like_detects_heredoc_without_prompts() {
+        let snippet = "cat <<'EOF'\necho hello\nEOF\n";
+        assert!(looks_shell_like(snippet));
     }
 }

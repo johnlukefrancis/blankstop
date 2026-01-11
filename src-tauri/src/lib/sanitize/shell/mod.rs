@@ -1,4 +1,5 @@
 mod detect;
+mod detect_helpers;
 mod reflow;
 
 pub use detect::looks_shell_like;

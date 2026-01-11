@@ -33,6 +33,7 @@ After installing, Blankstop starts as a tray app with no main window. Right-clic
 1. Listens for clipboard changes via Win32 events (no polling).
 2. If the source app is allowlisted, runs the sanitizer pipeline:
    - Normalizes line endings and strips invisible characters.
+   - Detects shell-like blocks (including PowerShell/pwsh and heredocs) and repairs common paste damage.
    - Detects JS/TS-like code and attempts to reflow soft-wrapped lines.
    - **Only rewrites if the result parses as valid JavaScript** (parse oracle).
    - Falls back to conservative text cleanup for non-JS content.

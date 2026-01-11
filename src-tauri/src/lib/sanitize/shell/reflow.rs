@@ -1,3 +1,5 @@
+use super::heredoc;
+
 #[derive(Debug, Default, Clone, Copy)]
 pub struct ShellReflowSummary {
     pub repaired_string_wraps: usize,
@@ -16,12 +18,13 @@ enum ContinuationKind {
 }
 pub fn reflow_shell(text: &str) -> ShellReflowResult {
     let mut summary = ShellReflowSummary::default();
-    let mut output = String::with_capacity(text.len());
+    let repaired = heredoc::repair_indented_terminators(text);
+    let mut output = String::with_capacity(repaired.len());
     let mut in_single = false;
     let mut in_double = false;
     let mut here_delim: Option<char> = None;
     let mut skip_leading = 0usize;
-    let mut lines = text.split('\n').peekable();
+    let mut lines = repaired.split('\n').peekable();
     while let Some(raw_line) = lines.next() {
         let mut line = raw_line;
         if skip_leading > 0 {

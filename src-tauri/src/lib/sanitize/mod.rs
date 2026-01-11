@@ -1,6 +1,7 @@
 mod normalize;
 mod clean;
 mod js;
+mod shell;
 mod limits;
 mod boundaries;
 mod context;
@@ -25,6 +26,9 @@ pub struct SanitizeSummary {
     pub trimmed_blank_lines: usize,
     pub removed_invisibles: usize,
     pub stripped_prefixes: usize,
+    pub repaired_string_wraps: usize,
+    pub removed_cmd_carets: usize,
+    pub joined_explicit_continuations: usize,
     pub js_validated: bool,
 }
 
@@ -40,6 +44,23 @@ pub fn sanitize_text(input: &str) -> SanitizeResult {
     if limits::exceeds_max_clipboard_chars(&clean.text) {
         return limits::sanitize_large_input(clean);
     }
+    if shell::looks_shell_like(&clean.text) {
+        let shell_result = shell::reflow_shell(&clean.text);
+        return SanitizeResult {
+            output: shell_result.output,
+            summary: SanitizeSummary {
+                unwrapped_lines: 0,
+                trimmed_trailing_ws: 0,
+                trimmed_blank_lines: 0,
+                removed_invisibles: clean.removed_invisibles,
+                stripped_prefixes: clean.stripped_prefixes,
+                repaired_string_wraps: shell_result.summary.repaired_string_wraps,
+                removed_cmd_carets: shell_result.summary.removed_cmd_carets,
+                joined_explicit_continuations: shell_result.summary.joined_explicit_continuations,
+                js_validated: false,
+            },
+        };
+    }
     if js::looks_js_like(&clean.text) {
         if let Some(output) = js::sanitize_js(&clean.text) {
             return SanitizeResult {
@@ -50,6 +71,9 @@ pub fn sanitize_text(input: &str) -> SanitizeResult {
                     trimmed_blank_lines: 0,
                     removed_invisibles: clean.removed_invisibles,
                     stripped_prefixes: clean.stripped_prefixes,
+                    repaired_string_wraps: 0,
+                    removed_cmd_carets: 0,
+                    joined_explicit_continuations: 0,
                     js_validated: true,
                 },
             };
@@ -62,6 +86,9 @@ pub fn sanitize_text(input: &str) -> SanitizeResult {
                 trimmed_blank_lines: 0,
                 removed_invisibles: clean.removed_invisibles,
                 stripped_prefixes: clean.stripped_prefixes,
+                repaired_string_wraps: 0,
+                removed_cmd_carets: 0,
+                joined_explicit_continuations: 0,
                 js_validated: false,
             },
         };
@@ -91,6 +118,9 @@ fn sanitize_text_text_mode_from_clean(clean: CleanResult) -> SanitizeResult {
                 trimmed_blank_lines,
                 removed_invisibles: clean.removed_invisibles,
                 stripped_prefixes: clean.stripped_prefixes,
+                repaired_string_wraps: 0,
+                removed_cmd_carets: 0,
+                joined_explicit_continuations: 0,
                 js_validated: false,
             },
         };
@@ -102,6 +132,9 @@ fn sanitize_text_text_mode_from_clean(clean: CleanResult) -> SanitizeResult {
         trimmed_blank_lines,
         removed_invisibles: clean.removed_invisibles,
         stripped_prefixes: clean.stripped_prefixes,
+        repaired_string_wraps: 0,
+        removed_cmd_carets: 0,
+        joined_explicit_continuations: 0,
         js_validated: false,
     };
 
@@ -155,6 +188,27 @@ impl SanitizeSummary {
                 "stripped {} bullet prefix{}",
                 self.stripped_prefixes,
                 if self.stripped_prefixes == 1 { "" } else { "es" }
+            ));
+        }
+        if self.repaired_string_wraps > 0 {
+            parts.push(format!(
+                "repaired {} string wrap{}",
+                self.repaired_string_wraps,
+                if self.repaired_string_wraps == 1 { "" } else { "s" }
+            ));
+        }
+        if self.removed_cmd_carets > 0 {
+            parts.push(format!(
+                "removed {} cmd caret{}",
+                self.removed_cmd_carets,
+                if self.removed_cmd_carets == 1 { "" } else { "s" }
+            ));
+        }
+        if self.joined_explicit_continuations > 0 {
+            parts.push(format!(
+                "joined {} explicit continuation{}",
+                self.joined_explicit_continuations,
+                if self.joined_explicit_continuations == 1 { "" } else { "s" }
             ));
         }
         if parts.is_empty() {

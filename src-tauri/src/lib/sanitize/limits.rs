@@ -17,6 +17,9 @@ pub fn sanitize_large_input(clean: CleanResult) -> SanitizeResult {
             trimmed_blank_lines: 0,
             removed_invisibles: clean.removed_invisibles,
             stripped_prefixes: clean.stripped_prefixes,
+            repaired_string_wraps: 0,
+            removed_cmd_carets: 0,
+            joined_explicit_continuations: 0,
             js_validated: false,
         },
     }

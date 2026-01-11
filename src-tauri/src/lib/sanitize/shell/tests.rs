@@ -28,15 +28,15 @@ fn power_shell_wrapped_unc_path_is_unwrapped() {
 fn cmd_caret_tokens_are_removed_at_token_start() {
     let input = concat!(
         "cmd /c powershell -Command ^\n",
-        "  \"Write-Host 'hi'; ^\n",
-        "  [Environment]::Exit(0)\"\n",
+        "  \"Write-Host 'hi';\" ^\n",
+        "  \"[Environment]::Exit(0)\"\n",
     );
     let result = sanitize_text(input);
     assert!(!result.output.contains('^'));
     assert!(
         result
             .output
-            .contains("-Command \"Write-Host 'hi'; [Environment]::Exit(0)\"")
+            .contains("-Command \"Write-Host 'hi';\" \"[Environment]::Exit(0)\"")
     );
 }
 
@@ -61,4 +61,23 @@ fn multiple_heredoc_terminators_are_repaired_independently() {
     let result = sanitize_text(input);
     assert!(result.output.contains("\nONE\n"));
     assert!(result.output.contains("\nCLIP\n"));
+}
+
+#[test]
+fn quoted_path_trailing_backslash_is_preserved() {
+    let input = concat!(
+        "echo \"\\\\wsl$\\\\Ubuntu\\\\home\\\\johnf\\\\code\\\\\n",
+        "  textureportal\"\n",
+    );
+    let result = sanitize_text(input);
+    assert!(result
+        .output
+        .contains("\"\\\\wsl$\\\\Ubuntu\\\\home\\\\johnf\\\\code\\\\textureportal\""));
+}
+
+#[test]
+fn cmd_caret_inside_quotes_is_preserved() {
+    let input = "cmd /c echo \"caret ^ literal\"\n";
+    let result = sanitize_text(input);
+    assert!(result.output.contains("caret ^ literal"));
 }

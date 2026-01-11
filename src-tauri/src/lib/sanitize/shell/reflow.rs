@@ -1,3 +1,4 @@
+use super::continuation::{continuation_kind, strip_continuation_marker, ContinuationKind};
 use super::heredoc;
 
 #[derive(Debug, Default, Clone, Copy)]
@@ -10,11 +11,6 @@ pub struct ShellReflowSummary {
 pub struct ShellReflowResult {
     pub output: String,
     pub summary: ShellReflowSummary,
-}
-enum ContinuationKind {
-    Bash,
-    PowerShell,
-    Cmd,
 }
 pub fn reflow_shell(text: &str) -> ShellReflowResult {
     let mut summary = ShellReflowSummary::default();
@@ -42,6 +38,8 @@ pub fn reflow_shell(text: &str) -> ShellReflowResult {
             }
             continue;
         }
+        let line_in_single = in_single;
+        let line_in_double = in_double;
         let here_start = starts_here_string(line);
         let line_for_quotes = if let Some((idx, _)) = here_start {
             &line[..idx]
@@ -63,11 +61,9 @@ pub fn reflow_shell(text: &str) -> ShellReflowResult {
         }
         let mut join_next = false;
         let mut continuation: Option<ContinuationKind> = None;
-        if !in_single {
-            if let Some(kind) = continuation_kind(line) {
-                continuation = Some(kind);
-                join_next = true;
-            }
+        if let Some(kind) = continuation_kind(line, line_in_single, line_in_double) {
+            continuation = Some(kind);
+            join_next = true;
         }
         if !join_next && (in_single || in_double) {
             if let Some(next_line) = lines.peek().copied() {
@@ -137,21 +133,6 @@ fn starts_here_string(line: &str) -> Option<(usize, char)> {
 fn ends_here_string(line: &str, delim: char) -> bool {
     let trimmed = line.trim();
     trimmed.len() == 2 && trimmed.starts_with(delim) && trimmed.ends_with('@')
-}
-fn continuation_kind(line: &str) -> Option<ContinuationKind> {
-    let trimmed = line.trim_end();
-    let last = trimmed.chars().last()?;
-    match last {
-        '\\' => Some(ContinuationKind::Bash),
-        '`' => Some(ContinuationKind::PowerShell),
-        '^' => Some(ContinuationKind::Cmd),
-        _ => None,
-    }
-}
-fn strip_continuation_marker(line: &str) -> &str {
-    let trimmed = line.trim_end();
-    let cut = trimmed.len().saturating_sub(1);
-    &line[..cut]
 }
 fn should_join_string_wrap(line: &str, next_line: &str) -> bool {
     let line_trim = line.trim_end();

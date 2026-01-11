@@ -1,5 +1,6 @@
 mod detect;
 mod detect_helpers;
+mod continuation;
 mod heredoc;
 mod reflow;
 

@@ -41,6 +41,8 @@ After installing, Blankstop starts as a tray app with no main window. Right-clic
 
 **Global shortcut:** `Ctrl+Alt+Shift+V` toggles enabled/disabled.
 
+Validation examples: `docs/runbook/sanitizer_validation.md`.
+
 ## When Blankstop will NOT change your clipboard
 
 - Disabled via tray or settings.

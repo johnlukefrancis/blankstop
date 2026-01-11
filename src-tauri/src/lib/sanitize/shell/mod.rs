@@ -1,5 +1,8 @@
 mod detect;
 mod reflow;
 
-pub use detect::{looks_shell_like, ShellFlavor};
-pub use reflow::{reflow_shell, ShellReflowResult, ShellReflowSummary};
+pub use detect::looks_shell_like;
+pub use reflow::reflow_shell;
+
+#[cfg(test)]
+mod tests;

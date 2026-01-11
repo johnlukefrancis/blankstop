@@ -8,10 +8,11 @@ Entry point: `sanitize_text` in `src-tauri/src/lib/sanitize/mod.rs`.
 The pipeline is:
 1) Pre-clean stage (normalize + strip).
 1.5) Large input guard (skip JS + unwrap when oversized).
-2) JS-like detection gate (conservative).
-3) JS reflow + parse validation (oracle).
-4) Fallback text-mode sanitizer (non-JS).
-5) Caller-level rewrite gate (no-op if output matches normalized input).
+2) Shell/command detection + reflow (preempts JS gate).
+3) JS-like detection gate (conservative).
+4) JS reflow + parse validation (oracle).
+5) Fallback text-mode sanitizer (non-JS).
+6) Caller-level rewrite gate (no-op if output matches normalized input).
 
 ## Pre-clean stage (normalize + strip)
 Owner: `src-tauri/src/lib/sanitize/clean.rs`
@@ -44,6 +45,32 @@ Behavior:
   the sanitizer skips JS detection/reflow/parse and skips text-mode unwrapping.
 - Only the pre-clean stage + per-line trailing whitespace trimming runs.
 - `js_validated` remains false for this path.
+
+## Shell/command reflow (pre-JS gate)
+Owner: `src-tauri/src/lib/sanitize/shell/mod.rs` + `reflow.rs` + `detect.rs`
+
+When used:
+- Runs after pre-clean and the large input guard.
+- Runs before JS-like detection to avoid JS false positives on shell scripts.
+
+Why:
+- PowerShell and cmd blocks often include semicolons or braces that look JS-like.
+- Shell copy/paste wrapping frequently breaks string literals or continuations.
+- This stage repairs shell-specific artifacts so the JS oracle is only used when
+  the input is actually JS.
+
+Reflow rules:
+- Remove soft-wrap newlines inside quoted string literals (single or double).
+- Strip cmd.exe caret (`^`) continuation artifacts at end-of-line.
+- Join explicit continuation markers:
+  - Bash `\\` at end-of-line.
+  - PowerShell `` ` `` at end-of-line.
+- Preserve real multi-line scripts: only the explicit continuation markers or
+  wrapped literal newlines are joined.
+
+Invariants:
+- Do not flatten blocks that rely on newlines for control flow.
+- Do not insert spaces inside string literals while repairing wraps.
 
 ## JS-like detection (conservative gate)
 Owner: `src-tauri/src/lib/sanitize/js/mod.rs`
@@ -153,6 +180,9 @@ Escaped view tips:
 ## Owning modules
 - `src-tauri/src/lib/sanitize/mod.rs` (pipeline entry + JS/fallback switch)
 - `src-tauri/src/lib/sanitize/clean.rs` (pre-clean + bullet strip)
+- `src-tauri/src/lib/sanitize/shell/mod.rs` (shell gate + reflow entry)
+- `src-tauri/src/lib/sanitize/shell/detect.rs` (shell detection)
+- `src-tauri/src/lib/sanitize/shell/reflow.rs` (shell reflow rules)
 - `src-tauri/src/lib/sanitize/js/mod.rs` (JS gate + oracle call)
 - `src-tauri/src/lib/sanitize/js/reflow.rs` (JS join rules)
 - `src-tauri/src/lib/sanitize/js/parse.rs` (parse-only validation)

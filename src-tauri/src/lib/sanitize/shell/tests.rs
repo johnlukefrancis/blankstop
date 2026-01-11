@@ -39,3 +39,26 @@ fn cmd_caret_tokens_are_removed_at_token_start() {
             .contains("-Command \"Write-Host 'hi'; [Environment]::Exit(0)\"")
     );
 }
+
+#[test]
+fn heredoc_terminator_is_repaired_and_body_preserved() {
+    let input = "cat > /tmp/x <<'EOF'\n  echo hi\n  EOF\n";
+    let result = sanitize_text(input);
+    assert!(result.output.contains("\nEOF\n"));
+    assert!(result.output.contains("\n  echo hi\n"));
+}
+
+#[test]
+fn multiple_heredoc_terminators_are_repaired_independently() {
+    let input = concat!(
+        "cat > /tmp/a <<'ONE'\n",
+        "  echo a\n",
+        "  ONE\n",
+        "cat > /tmp/b <<CLIP\n",
+        "  echo b\n",
+        "  CLIP\n",
+    );
+    let result = sanitize_text(input);
+    assert!(result.output.contains("\nONE\n"));
+    assert!(result.output.contains("\nCLIP\n"));
+}

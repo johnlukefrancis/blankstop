@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEST_DIR="${BLANKSTOP_WIN_PATH:-/mnt/c/code/blankstop}"
+DEST_DIR="${BLANKSTOP_WIN_PATH:-/mnt/d/code/blankstop}"
 
 if ! command -v rsync >/dev/null 2>&1; then
   echo "rsync not found. Install it with: sudo apt install -y rsync" >&2

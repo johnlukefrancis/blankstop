@@ -108,7 +108,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "wsl.exe -d Ubuntu -- bash -lc 'cd /home/johnf/code/blankstop && ./scripts/sync_to_windows.sh'; cd C:\\\\code\\\\blankstop; pnpm tauri dev"
+        "wsl.exe -d Ubuntu -- bash -lc 'cd /home/johnf/code/blankstop && ./scripts/sync_to_windows.sh'; cd D:\\\\code\\\\blankstop; pnpm tauri dev"
       ],
       "presentation": {
         "reveal": "always",
@@ -126,7 +126,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "Start-Process wsl.exe -ArgumentList '-d Ubuntu -- bash -lc \"cd /home/johnf/code/blankstop && ./scripts/watch_sync_to_windows.sh\"'; cd C:\\\\code\\\\blankstop; pnpm tauri dev"
+        "Start-Process wsl.exe -ArgumentList '-d Ubuntu -- bash -lc \"cd /home/johnf/code/blankstop && ./scripts/watch_sync_to_windows.sh\"'; cd D:\\\\code\\\\blankstop; pnpm tauri dev"
       ],
       "presentation": {
         "reveal": "always",
@@ -144,7 +144,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "wsl.exe -d Ubuntu -- bash -lc 'cd /home/johnf/code/blankstop && ./scripts/sync_to_windows.sh'; cd C:\\\\code\\\\blankstop; pnpm tauri build"
+        "wsl.exe -d Ubuntu -- bash -lc 'cd /home/johnf/code/blankstop && ./scripts/sync_to_windows.sh'; cd D:\\\\code\\\\blankstop; pnpm tauri build"
       ],
       "presentation": {
         "reveal": "always",
@@ -162,7 +162,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-Command",
-        "$installer = Get-ChildItem -Path \"C:\\\\code\\\\blankstop\\\\src-tauri\\\\target\\\\release\\\\bundle\\\\nsis\\\\*-setup.exe\" | Sort-Object LastWriteTime -Descending | Select-Object -First 1; if (-not $installer) { Write-Error \"No NSIS installer found. Run 'Tauri: build installer (Windows)' first.\"; exit 1 } ; Start-Process $installer.FullName"
+        "$installer = Get-ChildItem -Path \"D:\\\\code\\\\blankstop\\\\src-tauri\\\\target\\\\release\\\\bundle\\\\nsis\\\\*-setup.exe\" | Sort-Object LastWriteTime -Descending | Select-Object -First 1; if (-not $installer) { Write-Error \"No NSIS installer found. Run 'Tauri: build installer (Windows)' first.\"; exit 1 } ; Start-Process $installer.FullName"
       ],
       "presentation": {
         "reveal": "always",

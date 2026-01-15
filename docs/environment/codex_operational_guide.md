@@ -7,7 +7,7 @@ Last verified: 2026-01-07
 - Non-interactive: `codex exec "<task>"`
 
 ## Repo workflow (WSL + Windows)
-- Edit in WSL; run the app in Windows at `C:\code\blankstop`.
+- Edit in WSL; run the app in Windows at `D:\code\blankstop`.
 - Use `scripts/sync_to_windows.sh` before running on Windows.
 - Prefer pnpm for frontend commands.
 

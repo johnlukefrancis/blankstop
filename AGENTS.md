@@ -12,7 +12,7 @@
 - No monolith growth: split when adding new responsibilities.
 
 ## Workflow (Windows + WSL)
-- Edit in WSL, run the app in Windows (C:\code\blankstop).
+- Edit in WSL, run the app in Windows (D:\code\blankstop).
 - Use `scripts/sync_to_windows.sh` (or the VS Code task) before Windows runs.
 - Use pnpm for frontend commands.
 

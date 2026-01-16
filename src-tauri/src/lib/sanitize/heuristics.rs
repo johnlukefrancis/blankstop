@@ -41,3 +41,27 @@ pub fn is_identifier_split(prev: &str, next: &str) -> bool {
 fn is_ident_char(ch: char) -> bool {
     ch.is_ascii_alphanumeric() || ch == '_'
 }
+
+pub fn is_token_wrap_boundary(prev: &str, next: &str, next_leading_ws: usize) -> bool {
+    let prev_trim = prev.trim_end();
+    if prev_trim.is_empty() {
+        return false;
+    }
+    let next_trim = next.trim_start();
+    if next_trim.is_empty() {
+        return false;
+    }
+    if next_leading_ws == 0 {
+        return false;
+    }
+    let prev_last = prev_trim.chars().last().unwrap();
+    if !matches!(prev_last, '/' | '\\' | '-') {
+        return false;
+    }
+    let next_first = next_trim.chars().next().unwrap();
+    is_tokenish_start(next_first)
+}
+
+fn is_tokenish_start(ch: char) -> bool {
+    ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-' | '.' | '/' | '\\')
+}

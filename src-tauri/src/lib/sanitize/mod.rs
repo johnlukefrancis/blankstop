@@ -49,7 +49,7 @@ pub fn sanitize_text(input: &str) -> SanitizeResult {
         return SanitizeResult {
             output: shell_result.output,
             summary: SanitizeSummary {
-                unwrapped_lines: 0,
+                unwrapped_lines: shell_result.summary.unwrapped_lines,
                 trimmed_trailing_ws: 0,
                 trimmed_blank_lines: 0,
                 removed_invisibles: clean.removed_invisibles,

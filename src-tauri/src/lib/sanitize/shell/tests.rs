@@ -81,3 +81,16 @@ fn cmd_caret_inside_quotes_is_preserved() {
     let result = sanitize_text(input);
     assert!(result.output.contains("caret ^ literal"));
 }
+
+#[test]
+fn shell_wrapped_path_tokens_are_stitched_without_spaces() {
+    let input = concat!(
+        "PS> ls assets/\n",
+        "  organized/procedural/seamless_void.png\n",
+    );
+    let result = sanitize_text(input);
+    assert!(result
+        .output
+        .contains("assets/organized/procedural/seamless_void.png"));
+    assert_eq!(result.summary.unwrapped_lines, 1);
+}

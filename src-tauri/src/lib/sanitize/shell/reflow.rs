@@ -1,8 +1,10 @@
 use super::continuation::{continuation_kind, strip_continuation_marker, ContinuationKind};
+use super::super::heuristics::is_token_wrap_boundary;
 use super::heredoc;
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct ShellReflowSummary {
+    pub unwrapped_lines: usize,
     pub repaired_string_wraps: usize,
     pub removed_cmd_carets: usize,
     pub joined_explicit_continuations: usize,
@@ -73,6 +75,16 @@ pub fn reflow_shell(text: &str) -> ShellReflowResult {
                 }
             }
         }
+        let mut joined_token_wrap = false;
+        if !join_next {
+            if let Some(next_line) = lines.peek().copied() {
+                let leading_ws = count_leading_ws(next_line);
+                if is_token_wrap_boundary(line, next_line, leading_ws) {
+                    join_next = true;
+                    joined_token_wrap = true;
+                }
+            }
+        }
         if join_next {
             if let Some(kind) = continuation {
                 let stripped = strip_continuation_marker(line);
@@ -87,6 +99,9 @@ pub fn reflow_shell(text: &str) -> ShellReflowResult {
                 }
             } else {
                 output.push_str(line);
+            }
+            if joined_token_wrap {
+                summary.unwrapped_lines += 1;
             }
             if let Some(next_line) = lines.peek().copied() {
                 skip_leading = count_leading_ws(next_line);

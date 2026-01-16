@@ -13,6 +13,17 @@ fn wrapped_commit_subject_example() {
 }
 
 #[test]
+fn text_mode_stitches_wrapped_filename_tokens() {
+    let input = "ml_basecolor_manual-\n  1768589129403-1.png\n";
+    let result = sanitize_text_text_mode(input);
+    assert_eq!(
+        result.output,
+        "ml_basecolor_manual-1768589129403-1.png"
+    );
+    assert_eq!(result.summary.unwrapped_lines, 1);
+}
+
+#[test]
 fn multiline_code_preserved() {
     let input = "const a = 1;\nconst b = 2;\n";
     let result = sanitize_text_text_mode(input);

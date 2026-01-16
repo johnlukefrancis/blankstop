@@ -1,5 +1,5 @@
 use super::context::BoundaryContext;
-use super::heuristics::is_identifier_split;
+use super::heuristics::{is_identifier_split, is_token_wrap_boundary};
 use super::lines::LineMeta;
 use super::profile::WrapProfile;
 
@@ -64,6 +64,13 @@ pub fn decide_join(
     {
         return JoinDecision {
             join: false,
+            insert_space: false,
+        };
+    }
+
+    if is_token_wrap_boundary(prev_trim, next_trim_start, next.leading_ws_count) {
+        return JoinDecision {
+            join: true,
             insert_space: false,
         };
     }

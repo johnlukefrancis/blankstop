@@ -105,7 +105,17 @@ pub fn handle_clipboard_update(app: &AppHandle, state: &SharedState, hwnd: HWND)
 
     emit_ui_state(app, state);
     if config.toast_enabled {
-        show_toast(app, toast_with_source);
+        if let Err(err) = show_toast(app, toast_with_source) {
+            let mut guard = lock_state(state);
+            push_log(
+                &mut guard,
+                LogEntry {
+                    timestamp_ms: now_ms(),
+                    source_exe: source_exe.clone(),
+                    summary: format!("Toast failed: {err}"),
+                },
+            );
+        }
     }
 }
 

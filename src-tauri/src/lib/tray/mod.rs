@@ -61,7 +61,9 @@ pub fn handle_menu_action(app: &AppHandle, state: &SharedState, action: &str) {
             } else {
                 "Sanitize now: no changes"
             };
-            show_toast(app, message);
+            if let Err(err) = show_toast(app, message) {
+                log_toast_error(state, &err);
+            }
         }
         "quit" => {
             app.exit(0);
@@ -83,7 +85,9 @@ fn toggle_enabled(app: &AppHandle, state: &SharedState, show_toast_notification:
     emit_ui_state(app, state);
     if show_toast_notification && config.status_toast_enabled {
         let message = format_enabled_toast(config.enabled, source_exe.as_deref());
-        show_toast(app, message);
+        if let Err(err) = show_toast(app, message) {
+            log_toast_error(state, &err);
+        }
     }
     if let Err(err) = save_config(app, &config) {
         log_save_error(state, err);
@@ -139,6 +143,18 @@ fn format_enabled_toast(enabled: bool, _source_exe: Option<&str>) -> String {
     } else {
         "✗ Blankstop disabled".to_string()
     }
+}
+
+fn log_toast_error(state: &SharedState, err: &str) {
+    let mut guard = lock_state(state);
+    push_log(
+        &mut guard,
+        LogEntry {
+            timestamp_ms: now_ms(),
+            source_exe: None,
+            summary: format!("Toast failed: {err}"),
+        },
+    );
 }
 
 fn log_save_error(state: &SharedState, err: String) {

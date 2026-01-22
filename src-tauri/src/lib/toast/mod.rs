@@ -33,20 +33,43 @@ pub fn ensure_toast_window(app: &AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
-pub fn show_toast(app: &AppHandle, message: impl Into<String>) {
-    let Some(window) = app.get_webview_window("toast") else {
-        return;
-    };
+pub fn show_toast(app: &AppHandle, message: impl Into<String>) -> Result<(), String> {
     let message = message.into();
     let generation = TOAST_GENERATION.fetch_add(1, Ordering::Relaxed) + 1;
+
+    ensure_toast_window(app).map_err(|e| format!("toast window create failed: {e}"))?;
+
+    let window = app
+        .get_webview_window("toast")
+        .ok_or_else(|| "toast window missing after ensure".to_string())?;
+
     let _ = position_toast(&window);
-    let _ = window.emit("toast-message", message.clone());
-    let _ = window.show();
-    let window_clone = window.clone();
+
+    if window.emit("toast-message", message.clone()).is_err() {
+        let _ = window.close();
+        ensure_toast_window(app).map_err(|e| format!("toast recreate failed: {e}"))?;
+        let window = app
+            .get_webview_window("toast")
+            .ok_or_else(|| "toast window missing after recreate".to_string())?;
+        let _ = position_toast(&window);
+        window
+            .emit("toast-message", message.clone())
+            .map_err(|e| format!("toast emit retry failed: {e}"))?;
+        let _ = window.show();
+        schedule_hide(window, generation);
+        return Ok(());
+    }
+
+    window.show().map_err(|e| format!("toast show failed: {e}"))?;
+    schedule_hide(window, generation);
+    Ok(())
+}
+
+fn schedule_hide(window: tauri::WebviewWindow, generation: u64) {
     tauri::async_runtime::spawn_blocking(move || {
         std::thread::sleep(Duration::from_millis(1400));
         if TOAST_GENERATION.load(Ordering::Relaxed) == generation {
-            let _ = window_clone.hide();
+            let _ = window.hide();
         }
     });
 }
